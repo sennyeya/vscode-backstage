@@ -1,0 +1,33 @@
+{
+  "name": "backstage-entity-language-server",
+  "version": "1.0.0",
+  "author": "",
+  "license": "ISC",
+  "publisher": "backstage",
+  "description": "",
+  "activationEvents": [
+    "onLanguage:backstage-entity"
+  ],
+  "main": "./out/server/index.js",
+  "types": "./out/server/index.d.ts",
+  "bin": {
+    "backstage-entity-language-server": "./bin/backstage-entity-language-server"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "lint": "eslint ./client/src ./server/src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@flatten-js/interval-tree": "^1.1.1",
+    "lodash": "^4.17.21",
+    "typescript": "^5.2.2",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11",
+    "vscode-uri": "^3.0.8"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.199"
+  }
+}

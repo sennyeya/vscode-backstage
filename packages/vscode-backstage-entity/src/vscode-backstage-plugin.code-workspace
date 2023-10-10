@@ -1,0 +1,14 @@
+{
+  "folders": [
+    {
+      "path": "../../.."
+    },
+    {
+      "path": "../../backstage-entity-language-server"
+    },
+    {
+      "path": ".."
+    }
+  ],
+  "settings": {}
+}

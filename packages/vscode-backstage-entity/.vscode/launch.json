@@ -1,0 +1,55 @@
+// A launch configuration that launches the extension inside a new window
+// Use IntelliSense to learn about possible attributes.
+// Hover to view descriptions of existing attributes.
+// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Both (src)",
+      "stopAll": true,
+      "configurations": [
+        "Launch Language Server Extension",
+        "Attach to Server (src)"
+      ],
+      "presentation": {
+        "order": 1
+      }
+    }
+  ],
+  "configurations": [
+    {
+      "name": "Launch Language Server Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "sourceMaps": true,
+      "args": [
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "preLaunchTask": "npm: watch:client",
+      "outFiles": ["${workspaceFolder}/out/client/**/*.js"]
+    },
+    {
+      "name": "Attach to Server",
+      "type": "node",
+      "request": "attach",
+      "timeout": 30000,
+      "port": 6010,
+      "restart": true,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/out/server/**/*.js"]
+    },
+    {
+      "name": "Attach to Server (src)",
+      "type": "node",
+      "request": "attach",
+      "timeout": 30000,
+      "port": 6010,
+      "restart": true,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/out/server/**/*.js"],
+      "preLaunchTask": "npm: watch:server"
+    }
+  ]
+}

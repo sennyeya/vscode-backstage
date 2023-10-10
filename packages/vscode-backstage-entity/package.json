@@ -1,0 +1,49 @@
+{
+  "name": "backstage-entity",
+  "publisher": "backstage",
+  "displayName": "vscode-backstage-entity",
+  "description": "Language support for Backstage entity files, beyond just YAML.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.83.0"
+  },
+  "scripts": {
+    "watch:client": "tsc -b -w",
+    "watch:server": "tsc -p ../backstage-entity-language-server --outDir out/server -w"
+  },
+  "main": "./out/client/extension.js",
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:yaml"
+  ],
+  "contributes": {
+    "commands": [],
+    "languages": [
+      {
+        "id": "backstage-entity",
+        "aliases": [
+          "Backstage (Entity)",
+          "backstage-entity"
+        ],
+        "filenames": [
+          "catalog-info.yaml"
+        ],
+        "firstLine": "^apiVersion: backstage.io/.*$",
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "backstage-entity",
+        "scopeName": "source.backstage-entity",
+        "path": "./syntaxes/yaml.tmLanguage"
+      }
+    ]
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1",
+    "yaml": "^2.3.2"
+  }
+}
