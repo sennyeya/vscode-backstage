@@ -45,5 +45,9 @@
   "dependencies": {
     "vscode-languageclient": "^9.0.1",
     "yaml": "^2.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.4",
+    "@types/vscode": "^1.83.0"
   }
 }
