@@ -9,7 +9,7 @@
   },
   "scripts": {
     "watch:client": "tsc -b -w",
-    "watch:server": "tsc -p ../backstage-entity-language-server --outDir out/server -w"
+    "watch:server": "tsc -b ../backstage-entity-language-server/tsconfig.client.json -w"
   },
   "main": "./out/client/extension.js",
   "categories": [
@@ -43,6 +43,7 @@
     ]
   },
   "dependencies": {
+    "typescript": "^5.2.2",
     "vscode-languageclient": "^9.0.1",
     "yaml": "^2.3.2"
   },

@@ -1,15 +1,26 @@
 import IntervalTree from "@flatten-js/interval-tree";
 import {
   Connection,
+  CreateFile,
   Diagnostic,
   DiagnosticSeverity,
   Range,
+  TextDocumentEdit,
+  TextEdit,
+  WorkspaceEdit,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { ValidationManager } from "../services/validationManager";
 import { WorkspaceFolderContext } from "../services/workspaceManager";
-import { isPlaybook, parseAllDocuments } from "../utils/yaml";
-import { CommandRunner } from "../utils/commandRunner";
+import { parseAllDocuments } from "../utils/yaml";
+import Ajv, { ErrorObject } from "ajv";
+import entitySchema from "../schema/Entity.schema.json";
+import entityEnvelope from "../schema/EntityEnvelope.schema.json";
+import entityMeta from "../schema/EntityMeta.schema.json";
+import apiSchema from "../schema/API.schema.json";
+import componentSchema from "../schema/Component.schema.json";
+import commonSchema from "../schema/common.schema.json";
+import improveErrors from "ajv-error-mapping";
 
 /**
  * Validates the given document.
@@ -45,16 +56,127 @@ export async function doValidate(
   for (const [fileUri, fileDiagnostics] of diagnosticsByFile) {
     if (textDocument.uri === fileUri) {
       fileDiagnostics.push(...getYamlValidation(textDocument));
+      const jsonSchemaValidation = await getJsonSchemaValidation(
+        textDocument,
+        connection
+      );
+      fileDiagnostics.push(...(jsonSchemaValidation ?? []));
     }
   }
   validationManager.processDiagnostics(textDocument.uri, diagnosticsByFile);
   return diagnosticsByFile;
 }
 
-export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
+const ajv = new Ajv({
+  allowUnionTypes: true,
+  allErrors: true,
+});
+
+ajv.addSchema(apiSchema, "API");
+ajv.addSchema(componentSchema, "Component");
+ajv.addSchema(entitySchema);
+ajv.addSchema(entityEnvelope);
+ajv.addSchema(entityMeta);
+ajv.addSchema(commonSchema);
+
+async function getJsonSchemaValidation(
+  textDocument: TextDocument,
+  connection: Connection
+): Promise<Diagnostic[]> {
   const diagnostics: Diagnostic[] = [];
   const yDocuments = parseAllDocuments(textDocument.getText());
-  console.log(yDocuments);
+
+  for (const yamlDoc of yDocuments) {
+    const parsedYaml = yamlDoc.toJS();
+    const validate = ajv.getSchema(parsedYaml.kind ?? "Entity");
+    const success = validate(parsedYaml);
+    if (success) return;
+    const errors = improveErrors(validate.errors, entitySchema, {
+      type: "yaml",
+      document: yamlDoc,
+    });
+    console.log(validate.errors);
+    await createOutputFile(
+      textDocument,
+      connection,
+      JSON.stringify(validate.errors)
+    );
+
+    errors.forEach((error) => {
+      const { start, end, title } = error;
+      const startPosition = textDocument.positionAt(
+        start !== undefined ? start : null
+      );
+
+      const endPosition = textDocument.positionAt(
+        end !== undefined ? end : null
+      );
+
+      diagnostics.push({
+        message: title,
+        range: Range.create(startPosition, endPosition),
+        source: "Backstage [YAML]",
+      });
+    });
+  }
+  return diagnostics;
+}
+
+export async function createOutputFile(
+  textDocument: TextDocument,
+  connection: Connection,
+  data: string
+) {
+  //uri of new file
+  let currentPath: string = textDocument.uri.substr(
+    0,
+    textDocument.uri.lastIndexOf("/")
+  );
+
+  let newuri = currentPath + "/errors.json";
+
+  //construct a CreateFile variable
+  let createFile: CreateFile = { kind: "create", uri: newuri };
+  //and make into array
+  let createFiles: CreateFile[] = [];
+  createFiles.push(createFile);
+
+  //make a new workspaceEdit variable, specifying a createFile document change
+  var workspaceEdit: WorkspaceEdit = { documentChanges: createFiles };
+
+  //pass to client to apply this edit
+  await connection.workspace.applyEdit(workspaceEdit);
+
+  //To insert the text (and pop up the window), create array of TextEdit
+  let textEdit: TextEdit[] = [];
+  //let document = documents.get(newuri);
+  let documentRange: Range = Range.create(0, 0, 0, data.length);
+  //populate with the text, and where to insert (surely this is what workspaceChange.insert is for?)
+  let textEdits: TextEdit = { range: documentRange, newText: data };
+
+  textEdit.push(textEdits);
+
+  //make a new array of textDocumentEdits, containing our TextEdit (range and text)
+  let textDocumentEdit = TextDocumentEdit.create(
+    { uri: newuri, version: 1 },
+    textEdit
+  );
+  let textDocumentEdits: TextDocumentEdit[] = [];
+  textDocumentEdits.push(textDocumentEdit);
+
+  //set  our workspaceEdit variable to this new TextDocumentEdit
+  workspaceEdit = { documentChanges: textDocumentEdits };
+
+  //and finally apply this to our workspace.
+  // we can probably do this some more elegant way
+  connection.workspace.applyEdit(workspaceEdit);
+}
+
+export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+  const yDocuments = parseAllDocuments(textDocument.getText(), {
+    prettyErrors: false,
+  });
   const rangeTree = new IntervalTree<Diagnostic>();
   yDocuments.forEach((yDoc) => {
     yDoc.errors.forEach((error) => {

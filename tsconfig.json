@@ -1,0 +1,10 @@
+{
+  "references": [
+    { "path": "../packages/ajv-error-mapping" },
+    { "path": "../packages/backstage-entity-language-server" },
+    { "path": "../packages/vscode-backstage-entity" }
+  ],
+  "files": [],
+  "include": [],
+  "exclude": ["**/node_modules"]
+}

@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "description": "",
   "main": "src/index.ts",
-  "scripts": {},
   "author": "",
   "private": true,
   "license": "MIT",
@@ -12,5 +11,6 @@
   },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "packageManager": "yarn@4.0.0"
 }

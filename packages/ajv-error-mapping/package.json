@@ -1,0 +1,12 @@
+{
+  "name": "ajv-error-mapping",
+  "version": "0.0.0",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "typescript": "^5.2.2",
+    "yaml": "^2.3.3"
+  }
+}
