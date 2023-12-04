@@ -100,5 +100,6 @@ export class CommandRunner {
     } catch (error) {
       console.log(error);
     }
+    return undefined;
   }
 }

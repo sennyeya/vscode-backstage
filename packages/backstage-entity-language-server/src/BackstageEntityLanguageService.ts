@@ -15,7 +15,6 @@ import {
 import { getDefinition } from "./providers/definitionProvider";
 import { doHover } from "./providers/hoverProvider";
 import {
-  doSemanticTokens,
   tokenModifiers,
   tokenTypes,
 } from "./providers/semanticTokenProvider";

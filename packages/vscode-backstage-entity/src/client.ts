@@ -1,9 +1,8 @@
 import * as path from "path";
-import { ExtensionContext, extensions, window, workspace } from "vscode";
+import { ExtensionContext, window } from "vscode";
 import {
   LanguageClient,
   LanguageClientOptions,
-  NotificationType,
   ServerOptions,
   TransportKind,
   RevealOutputChannelOn,

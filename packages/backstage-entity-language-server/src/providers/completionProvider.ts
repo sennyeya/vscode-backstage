@@ -1,32 +1,17 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import { EOL } from "os";
 import {
   CompletionItem,
   CompletionItemKind,
-  InsertTextFormat,
   MarkupContent,
+  Position,
   Range,
-  TextEdit,
 } from "vscode-languageserver";
-import { Position, TextDocument } from "vscode-languageserver-textdocument";
-import { isScalar, Node, YAMLMap } from "yaml";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import { isScalar, Node } from "yaml";
 import { IOption } from "../interfaces/module";
 import { WorkspaceFolderContext } from "../services/workspaceManager";
 import { insert, toLspRange } from "../utils/misc";
-import {
-  AncestryBuilder,
-  getDeclaredCollections,
-  getPathAt,
-  getOrigRange,
-  getYamlMapKeys,
-  isBlockParam,
-  isPlayParam,
-  isRoleParam,
-  isTaskParam,
-  parseAllDocuments,
-  isCursorInsideJinjaBrackets,
-  isPlaybook,
-} from "../utils/yaml";
-import { getVarsCompletion } from "./completionProviderUtils";
 
 const priorityMap = {
   nameKeyword: 1,
@@ -50,7 +35,7 @@ export async function doCompletion(
   position: Position,
   context: WorkspaceFolderContext
 ): Promise<CompletionItem[] | null> {
-  isAnsiblePlaybook = isPlaybook(document);
+  isAnsiblePlaybook = true;
 
   let preparedText = document.getText();
   const offset = document.offsetAt(position);
@@ -78,8 +63,6 @@ export async function doCompletion(
   }
 
   preparedText = insert(preparedText, offset, dummyMappingCharacter);
-  const yamlDocs = parseAllDocuments(preparedText);
-  console.log(yamlDocs);
   return null;
 }
 
@@ -89,11 +72,8 @@ function getKeywordCompletion(
   path: Node[],
   keywords: Map<string, string | MarkupContent>
 ): CompletionItem[] {
-  const parameterMap = new AncestryBuilder(path)
-    .parent(YAMLMap)
-    .get() as YAMLMap;
   // find options that have been already provided by the user
-  const providedParams = new Set(getYamlMapKeys(parameterMap));
+  const providedParams = new Set();
 
   const remainingParams = [...keywords.entries()].filter(
     ([keyword]) => !providedParams.has(keyword)
@@ -141,7 +121,7 @@ function getHostCompletion(hostObjectList): CompletionItem[] {
  * the node has range information and is a string scalar.
  */
 function getNodeRange(node: Node, document: TextDocument): Range | undefined {
-  const range = getOrigRange(node);
+  const range = Range.create(Position.create(0, 0), Position.create(0, 0));
   if (range && isScalar(node) && typeof node.value === "string") {
     const start = range[0];
     let end = range[1];
@@ -154,6 +134,7 @@ function getNodeRange(node: Node, document: TextDocument): Range | undefined {
     }
     return toLspRange([start, end], document);
   }
+  return undefined;
 }
 
 export async function doCompletionResolve(

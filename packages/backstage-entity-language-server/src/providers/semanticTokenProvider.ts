@@ -16,14 +16,8 @@ import {
   YAMLMap,
 } from "yaml";
 import { IOption } from "../interfaces/module";
-import {
-  getOrigRange,
-  isBlockParam,
-  isPlayParam,
-  isRoleParam,
-  isTaskParam,
-  parseAllDocuments,
-} from "../utils/yaml";
+import { getOrigRange, parseAllDocuments } from "../utils/yaml";
+import { toLspRange } from "../utils/misc";
 
 export const tokenTypes = [
   SemanticTokenTypes.method,
@@ -69,7 +63,9 @@ function markModuleParameters(
 ) {
   for (const moduleParamPair of moduleParamMap.items) {
     if (isScalar(moduleParamPair.key)) {
-      const option = options?.get(moduleParamPair.key.value.toString());
+      const option = options?.get(
+        (moduleParamPair.key.value as any).toString()
+      );
       if (option) {
         markNode(
           moduleParamPair.key,
@@ -165,20 +161,21 @@ function markOrdinaryKey(
 function markNode(
   node: Scalar,
   tokenType: SemanticTokenTypes,
-  tokenModifiers: SemanticTokenModifiers[],
+  semanticTokenModifiers: SemanticTokenModifiers[],
   builder: SemanticTokensBuilder,
   document: TextDocument
 ) {
   const range = getOrigRange(node);
   if (range) {
-    const startPosition = document.positionAt(range[0]);
-    const length = range[1] - range[0];
+    const lspRange = toLspRange(range, document);
+    const startPosition = document.positionAt(lspRange[0]);
+    const length = lspRange[1] - lspRange[0];
     builder.push(
       startPosition.line,
       startPosition.character,
       length,
       encodeTokenType(tokenType),
-      encodeTokenModifiers(tokenModifiers)
+      encodeTokenModifiers(semanticTokenModifiers)
     );
   }
 }
@@ -192,10 +189,10 @@ function encodeTokenType(tokenType: SemanticTokenTypes) {
 }
 
 function encodeTokenModifiers(
-  tokenModifiers: SemanticTokenModifiers[]
+  semanticTokenModifiers: SemanticTokenModifiers[]
 ): number {
   let encodedModifiers = 0;
-  for (const tokenModifier of tokenModifiers) {
+  for (const tokenModifier of semanticTokenModifiers) {
     const tokenModifierIndex = tokenModifiersLegend.get(tokenModifier);
     if (tokenModifierIndex === undefined) {
       throw new Error(`The '${tokenModifier}' token modifier is not in legend`);

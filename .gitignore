@@ -2,3 +2,6 @@ node_modules
 out
 .DS_Store
 install-state.gz
+tsconfig.tsbuildinfo
+
+dist-types/

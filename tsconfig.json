@@ -1,10 +1,13 @@
 {
-  "references": [
-    { "path": "../packages/ajv-error-mapping" },
-    { "path": "../packages/backstage-entity-language-server" },
-    { "path": "../packages/vscode-backstage-entity" }
-  ],
-  "files": [],
-  "include": [],
-  "exclude": ["**/node_modules"]
+  "extends": "@backstage/cli/config/tsconfig.json",
+  "include": ["packages/*/src"],
+  "compilerOptions": {
+    "outDir": "dist-types",
+    "rootDir": ".",
+    "useUnknownInCatchVariables": false,
+    "emitDeclarationOnly": true,
+    "noUnusedLocals": false,
+    "noImplicitAny": false,
+    "noUnusedParameters": false
+  }
 }

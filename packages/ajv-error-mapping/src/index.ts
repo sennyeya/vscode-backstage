@@ -1,5 +1,5 @@
 import { ErrorObject } from "ajv";
-import { Document, Scalar, YAMLMap } from "yaml";
+import { Document, Scalar } from "yaml";
 
 function getParts(jsonRef: string) {
   return jsonRef
@@ -16,7 +16,7 @@ function getRangeForInstancePath(
   if (!Array.isArray(jsonRef)) {
     parts = getParts(jsonRef);
   }
-  let node = document.getIn(parts, true);
+  const node = document.getIn(parts, true);
   if (!node) {
     return getRangeForInstancePath(parts.slice(0, parts.length - 1), document);
   }
@@ -25,7 +25,7 @@ function getRangeForInstancePath(
 
 export default function improveErrors(
   errors: ErrorObject[],
-  schema: any,
+  schema: unknown,
   options: {
     type: "yaml";
     document: Document;
@@ -34,9 +34,9 @@ export default function improveErrors(
   // 1. take AJV errors and get a readable set of _deduplicated_ error messages.
   // 2. be able to map from an AJV error to a string in YAML.
 
-  const required = {};
-  const additionalProperties = {};
-  const type = {};
+  const required: Record<string, Record<string, Set<string>>> = {};
+  const additionalProperties: Record<string, Record<string, Set<string>>> = {};
+  const type: Record<string, Record<string, Set<string>>> = {};
   const enums: Record<string, string[]> = {};
 
   for (const error of errors) {
@@ -81,25 +81,25 @@ export default function improveErrors(
   [required, additionalProperties].forEach((map) =>
     Object.values(map).forEach((val) => {
       Object.keys(val).forEach((key) => {
-        val[key] = [...val[key]];
+        val[key] = [...val[key]] as any;
       });
     })
   );
 
-  const outputErrors = [];
+  const outputErrors: object[] = [];
 
-  const addMapToErrors = (map, prefix: string) => {
+  const addMapToErrors = (
+    map: Record<string, Record<string, any>>,
+    prefix: string
+  ) => {
     Object.entries(map).forEach(([instancePath, propertyMap]) => {
       Object.keys(propertyMap).forEach((property) => {
-        const [start, end] = getRangeForInstancePath(
-          instancePath,
-          options.document
-        );
+        const range = getRangeForInstancePath(instancePath, options.document);
 
         outputErrors.push({
-          title: `${prefix} '${instancePath}' "${property}"`,
-          start,
-          end,
+          title: `${prefix} "${property}"`,
+          start: range?.[0],
+          end: range?.[1],
         });
       });
     });
@@ -114,14 +114,11 @@ export default function improveErrors(
     addMapToErrors(map, errorMessages[index])
   );
   Object.entries(enums).forEach(([instancePath, values]) => {
-    const [start, end] = getRangeForInstancePath(
-      instancePath,
-      options.document
-    );
+    const range = getRangeForInstancePath(instancePath, options.document);
     outputErrors.push({
       title: `'${instancePath}' must be of type "${values}"`,
-      start,
-      end,
+      start: range?.[0],
+      end: range?.[1],
     });
   });
 

@@ -33,5 +33,6 @@ function getKeywordHover(
       contents: markupDoc,
       range: range ? toLspRange(range, document) : undefined,
     };
-  } else return null;
+  }
+  return null;
 }

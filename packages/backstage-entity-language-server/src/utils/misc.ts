@@ -12,17 +12,19 @@ export async function fileExists(filePath: string): Promise<boolean> {
 export const asyncExec = promisify(child_process.exec);
 
 export function toLspRange(
-  range: [number, number],
-  textDocument: TextDocument,
+  range: [number | undefined, number | undefined],
+  textDocument: TextDocument
 ): Range {
-  const start = textDocument.positionAt(range[0]);
-  const end = textDocument.positionAt(range[1]);
+  const start = textDocument.positionAt(range[0] ?? 0);
+  const end = textDocument.positionAt(
+    range[1] ?? textDocument.getText().length
+  );
   return Range.create(start, end);
 }
 
 export function hasOwnProperty<X, Y extends PropertyKey>(
   obj: X,
-  prop: Y,
+  prop: Y
 ): obj is X & Record<Y, unknown> {
   return isObject(obj) && obj.hasOwnProperty(prop);
 }
@@ -45,7 +47,7 @@ export function withInterpreter(
   executable: string,
   args: string,
   interpreterPath: string,
-  activationScript: string,
+  activationScript: string
 ): [string, NodeJS.ProcessEnv | undefined] {
   let command = `${executable} ${args}`; // base case
 
@@ -72,8 +74,8 @@ export function withInterpreter(
     }
 
     // emulating virtual environment activation script
-    newEnv["VIRTUAL_ENV"] = virtualEnv;
-    newEnv["PATH"] = `${pathEntry}:${process.env.PATH}`;
+    newEnv.VIRTUAL_ENV = virtualEnv;
+    newEnv.PATH = `${pathEntry}:${process.env.PATH}`;
     delete newEnv.PYTHONHOME;
   }
   return [command, newEnv];
@@ -88,4 +90,5 @@ export function getUnsupportedError(): string | undefined {
   if (process.platform === "win32") {
     return "Ansible Language Server can only run inside WSL on Windows. Refer to vscode documentation for more details.";
   }
+  return "unknown";
 }

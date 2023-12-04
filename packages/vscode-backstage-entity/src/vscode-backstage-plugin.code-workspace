@@ -10,5 +10,7 @@
       "path": ".."
     }
   ],
-  "settings": {}
+  "settings": {
+    "typescript.tsdk": "vscode-backstage-plugin/node_modules/typescript/lib"
+  }
 }

@@ -4,9 +4,13 @@
   "main": "out/index.js",
   "types": "out/index.d.ts",
   "license": "MIT",
+  "backstage": {
+    "role": "node-library"
+  },
   "dependencies": {
+    "@backstage/cli": "^0.24.0",
     "ajv": "^8.12.0",
     "typescript": "^5.2.2",
-    "yaml": "^2.3.3"
+    "yaml": "^2.3.4"
   }
 }

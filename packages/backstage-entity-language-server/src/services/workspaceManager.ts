@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import * as _ from "lodash";
 import {
   ClientCapabilities,
   Connection,
-  DidChangeWatchedFilesParams,
   WorkspaceFolder,
   WorkspaceFoldersChangeEvent,
 } from "vscode-languageserver";
@@ -47,6 +47,7 @@ export class WorkspaceManager {
       }
       return context;
     }
+    return undefined;
   }
 
   public async forEachContext(

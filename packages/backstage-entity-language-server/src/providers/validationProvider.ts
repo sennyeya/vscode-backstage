@@ -13,7 +13,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { ValidationManager } from "../services/validationManager";
 import { WorkspaceFolderContext } from "../services/workspaceManager";
 import { parseAllDocuments } from "../utils/yaml";
-import Ajv, { ErrorObject } from "ajv";
+import Ajv from "ajv";
 import entitySchema from "../schema/Entity.schema.json";
 import entityEnvelope from "../schema/EntityEnvelope.schema.json";
 import entityMeta from "../schema/EntityMeta.schema.json";
@@ -21,6 +21,7 @@ import apiSchema from "../schema/API.schema.json";
 import componentSchema from "../schema/Component.schema.json";
 import commonSchema from "../schema/common.schema.json";
 import improveErrors from "ajv-error-mapping";
+import { toLspRange } from "../utils/misc";
 
 /**
  * Validates the given document.
@@ -54,7 +55,7 @@ export async function doValidate(
 
   // attach quick validation for the inspected file
   for (const [fileUri, fileDiagnostics] of diagnosticsByFile) {
-    if (textDocument.uri === fileUri) {
+    if (textDocument.uri === fileUri && connection) {
       fileDiagnostics.push(...getYamlValidation(textDocument));
       const jsonSchemaValidation = await getJsonSchemaValidation(
         textDocument,
@@ -89,8 +90,9 @@ async function getJsonSchemaValidation(
   for (const yamlDoc of yDocuments) {
     const parsedYaml = yamlDoc.toJS();
     const validate = ajv.getSchema(parsedYaml.kind ?? "Entity");
+    if (!validate) continue;
     const success = validate(parsedYaml);
-    if (success) return;
+    if (success) continue;
     const errors = improveErrors(validate.errors, entitySchema, {
       type: "yaml",
       document: yamlDoc,
@@ -127,47 +129,47 @@ export async function createOutputFile(
   connection: Connection,
   data: string
 ) {
-  //uri of new file
-  let currentPath: string = textDocument.uri.substr(
+  // uri of new file
+  const currentPath: string = textDocument.uri.substr(
     0,
     textDocument.uri.lastIndexOf("/")
   );
 
-  let newuri = currentPath + "/errors.json";
+  const newuri = `${currentPath}/errors.json`;
 
-  //construct a CreateFile variable
-  let createFile: CreateFile = { kind: "create", uri: newuri };
-  //and make into array
-  let createFiles: CreateFile[] = [];
+  // construct a CreateFile variable
+  const createFile: CreateFile = { kind: "create", uri: newuri };
+  // and make into array
+  const createFiles: CreateFile[] = [];
   createFiles.push(createFile);
 
-  //make a new workspaceEdit variable, specifying a createFile document change
-  var workspaceEdit: WorkspaceEdit = { documentChanges: createFiles };
+  // make a new workspaceEdit variable, specifying a createFile document change
+  let workspaceEdit: WorkspaceEdit = { documentChanges: createFiles };
 
-  //pass to client to apply this edit
+  // pass to client to apply this edit
   await connection.workspace.applyEdit(workspaceEdit);
 
-  //To insert the text (and pop up the window), create array of TextEdit
-  let textEdit: TextEdit[] = [];
-  //let document = documents.get(newuri);
-  let documentRange: Range = Range.create(0, 0, 0, data.length);
-  //populate with the text, and where to insert (surely this is what workspaceChange.insert is for?)
-  let textEdits: TextEdit = { range: documentRange, newText: data };
+  // To insert the text (and pop up the window), create array of TextEdit
+  const textEdit: TextEdit[] = [];
+  // let document = documents.get(newuri);
+  const documentRange: Range = Range.create(0, 0, 0, data.length);
+  // populate with the text, and where to insert (surely this is what workspaceChange.insert is for?)
+  const textEdits: TextEdit = { range: documentRange, newText: data };
 
   textEdit.push(textEdits);
 
-  //make a new array of textDocumentEdits, containing our TextEdit (range and text)
-  let textDocumentEdit = TextDocumentEdit.create(
+  // make a new array of textDocumentEdits, containing our TextEdit (range and text)
+  const textDocumentEdit = TextDocumentEdit.create(
     { uri: newuri, version: 1 },
     textEdit
   );
-  let textDocumentEdits: TextDocumentEdit[] = [];
+  const textDocumentEdits: TextDocumentEdit[] = [];
   textDocumentEdits.push(textDocumentEdit);
 
-  //set  our workspaceEdit variable to this new TextDocumentEdit
+  // set  our workspaceEdit variable to this new TextDocumentEdit
   workspaceEdit = { documentChanges: textDocumentEdits };
 
-  //and finally apply this to our workspace.
+  // and finally apply this to our workspace.
   // we can probably do this some more elegant way
   connection.workspace.applyEdit(workspaceEdit);
 }
@@ -180,30 +182,20 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
   const rangeTree = new IntervalTree<Diagnostic>();
   yDocuments.forEach((yDoc) => {
     yDoc.errors.forEach((error) => {
-      const [errStart, errEnd] = error.pos;
-      if (errStart) {
-        const start = textDocument.positionAt(
-          errStart !== undefined ? errStart : null
-        );
-
-        const end = textDocument.positionAt(
-          errEnd !== undefined ? errEnd : null
-        );
-
-        const range = Range.create(start, end);
-
-        let severity: DiagnosticSeverity;
-        switch (error.name) {
-          case "YAMLParseError":
-            severity = DiagnosticSeverity.Error;
-            break;
-          case "YAMLWarning":
-            severity = DiagnosticSeverity.Warning;
-            break;
-          default:
-            severity = DiagnosticSeverity.Information;
-            break;
-        }
+      const range = toLspRange(error.pos, textDocument);
+      let severity: DiagnosticSeverity;
+      switch (error.name) {
+        case "YAMLParseError":
+          severity = DiagnosticSeverity.Error;
+          break;
+        case "YAMLWarning":
+          severity = DiagnosticSeverity.Warning;
+          break;
+        default:
+          severity = DiagnosticSeverity.Information;
+          break;
+      }
+      if (error.linePos && error.linePos.length === 2) {
         rangeTree.insert([error.linePos[0].line, error.linePos[1].line], {
           message: scrubYamlErrorMessage(error.message),
           range: range || Range.create(0, 0, 0, 0),
@@ -223,9 +215,7 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
 function scrubYamlErrorMessage(message: string) {
   console.log(message);
   const messageWithoutTraceback = message.slice(0, message.indexOf(":\n\n"));
-  return (
-    messageWithoutTraceback
-      .replace(/at line [0-9]+, column [0-9]+/g, "")
-      .trim() + "."
-  );
+  return `${messageWithoutTraceback
+    .replace(/at line [0-9]+, column [0-9]+/g, "")
+    .trim()}.`;
 }

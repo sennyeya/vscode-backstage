@@ -26,7 +26,7 @@ export function globArray(arrayOfPatterns: string[]): string[] {
 
   if (ignorePatterns.length === 0) {
     return [...matchFilesSet];
-  } else {
+  } 
     let matchFilesAfterExclusion: string[] = [];
     matchPatterns.forEach((pattern) => {
       const ignoredFiles = sync(pattern, {
@@ -36,5 +36,5 @@ export function globArray(arrayOfPatterns: string[]): string[] {
     });
     const matchFilesAfterExclusionSet = new Set(matchFilesAfterExclusion);
     return [...matchFilesAfterExclusionSet];
-  }
+  
 }

@@ -7,10 +7,17 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
+    "@backstage/cli": "^0.24.0",
     "typescript": "^5.2.2"
   },
   "workspaces": [
     "packages/*"
   ],
-  "packageManager": "yarn@4.0.0"
+  "packageManager": "yarn@4.0.0",
+  "devDependencies": {
+    "@spotify/eslint-config-typescript": "^15.0.0",
+    "@types/eslint": "^8",
+    "eslint": "^8.54.0",
+    "eslint-plugin-unused-imports": "^3.0.0"
+  }
 }
