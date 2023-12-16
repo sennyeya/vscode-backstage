@@ -15,7 +15,7 @@ export const startClient = async (context: ExtensionContext) => {
     path.join("out", "backstage-entity-language-server", "src", "index.js")
   );
 
-  // server is run at port 6009 for debugging
+  // server is run at port 6010 for debugging
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
 
   const serverOptions: ServerOptions = {
