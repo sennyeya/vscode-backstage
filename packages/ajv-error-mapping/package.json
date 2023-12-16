@@ -1,12 +1,23 @@
 {
   "name": "ajv-error-mapping",
   "version": "0.0.0",
-  "main": "out/index.js",
-  "types": "out/index.d.ts",
   "license": "MIT",
   "backstage": {
     "role": "node-library"
   },
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "package.json": [
+        "package.json"
+      ]
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "dependencies": {
     "@backstage/cli": "^0.24.0",
     "ajv": "^8.12.0",

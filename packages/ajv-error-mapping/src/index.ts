@@ -86,7 +86,7 @@ export default function improveErrors(
     })
   );
 
-  const outputErrors: object[] = [];
+  const outputErrors: { title: string; start: number; end: number }[] = [];
 
   const addMapToErrors = (
     map: Record<string, Record<string, any>>,

@@ -12,7 +12,7 @@ const lsName = "Backstage Entity Support";
 
 export const startClient = async (context: ExtensionContext) => {
   const serverModule = context.asAbsolutePath(
-    path.join("out", "server", "index.js")
+    path.join("out", "backstage-entity-language-server", "src", "index.js")
   );
 
   // server is run at port 6009 for debugging

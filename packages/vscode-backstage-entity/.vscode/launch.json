@@ -27,8 +27,8 @@
         "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceFolder}"
       ],
-      "preLaunchTask": "npm: watch:client",
-      "outFiles": ["${workspaceFolder}/out/client/**/*.js"]
+      "preLaunchTask": "npm: watch",
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Attach to Server",
@@ -38,7 +38,7 @@
       "port": 6010,
       "restart": true,
       "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/out/server/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Attach to Server (src)",
@@ -48,8 +48,8 @@
       "port": 6010,
       "restart": true,
       "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/out/server/**/*.js"],
-      "preLaunchTask": "npm: watch:server"
+      "outFiles": ["${workspaceFolder}/out/**/*.js"],
+      "preLaunchTask": "npm: watch"
     }
   ]
 }

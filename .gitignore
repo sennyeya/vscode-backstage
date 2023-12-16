@@ -4,4 +4,5 @@ out
 install-state.gz
 tsconfig.tsbuildinfo
 
-dist-types/
+dist/
+.hypothesis

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ScriptHost", "ES2021"],
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "target": "ES2021",
+    "types": ["node", "jest", "webpack-env"],
+    "allowJs": true,
+    "declaration": true,
+    "declarationMap": true,
+    "useUnknownInCatchVariables": false,
+    "noUnusedLocals": false,
+    "noImplicitAny": false,
+    "noUnusedParameters": false,
+    "composite": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "compileOnSave": true
+}

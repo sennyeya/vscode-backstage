@@ -10,6 +10,10 @@
     "@backstage/cli": "^0.24.0",
     "typescript": "^5.2.2"
   },
+  "scripts": {
+    "entity:build": "yarn --cwd packages/vscode-backstage-entity build",
+    "entity:watch": "yarn --cwd packages/vscode-backstage-entity watch"
+  },
   "workspaces": [
     "packages/*"
   ],

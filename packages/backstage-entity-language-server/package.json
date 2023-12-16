@@ -11,13 +11,12 @@
   "activationEvents": [
     "onLanguage:backstage-entity"
   ],
-  "main": "./out/server/index.js",
-  "types": "./out/server/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": "./bin/backstage-entity-language-server",
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -b",
-    "watch": "tsc -b -w"
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
   },
   "dependencies": {
     "@backstage/catalog-model": "^1.4.3",

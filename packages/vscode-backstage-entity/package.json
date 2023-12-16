@@ -5,16 +5,17 @@
   "description": "Language support for Backstage entity files, beyond just YAML.",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.83.0"
+    "vscode": "^1.82.0"
   },
   "backstage": {
     "role": "node-library"
   },
   "scripts": {
-    "watch:client": "tsc -b -w",
-    "watch:server": "tsc -b ../backstage-entity-language-server/tsconfig.client.json -w"
+    "build": "esbuild ./src/extension.ts ../backstage-entity-language-server/src/index.ts --bundle --outdir=out --external:vscode --format=cjs --platform=node",
+    "build:dev": "yarn build --sourcemap",
+    "watch": "yarn build:dev --watch"
   },
-  "main": "./out/client/extension.js",
+  "main": "./out/vscode-backstage-entity/src/extension.js",
   "categories": [
     "Programming Languages"
   ],
@@ -52,6 +53,7 @@
     "yaml": "^2.3.2"
   },
   "devDependencies": {
+    "esbuild": "^0.19.9",
     "@flatten-js/interval-tree": "^1.1.1",
     "@types/lodash": "^4.14.199",
     "@types/node": "^20.8.4",
@@ -60,6 +62,7 @@
     "ajv-error-mapping": "workspace:^",
     "glob": "^10.3.10",
     "lodash": "^4.17.21",
+    "tsconfig-paths-webpack-plugin": "^4.1.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11",
     "vscode-languageserver-types": "^3.17.5",
