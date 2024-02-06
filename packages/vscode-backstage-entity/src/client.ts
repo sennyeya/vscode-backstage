@@ -1,3 +1,4 @@
+import { watchFile } from "fs";
 import * as path from "path";
 import { ExtensionContext, window } from "vscode";
 import {
@@ -42,6 +43,10 @@ export const startClient = async (context: ExtensionContext) => {
     clientOptions
   );
 
+  watchFile(serverModule, () => {
+    client.restart();
+  });
+
   context.subscriptions.push(
     client.onTelemetry((e) => {
       console.log(e);
@@ -49,9 +54,7 @@ export const startClient = async (context: ExtensionContext) => {
   );
 
   try {
-    console.log("starting");
     await client.start();
-    console.log("started");
   } catch (err) {
     let errorMessage: string;
     if (err instanceof Error) {

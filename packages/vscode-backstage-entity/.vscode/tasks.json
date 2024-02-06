@@ -2,14 +2,10 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "echo",
-      "type": "shell",
-      "command": "echo ${workspaceFolder}"
-    },
-    {
       "type": "npm",
       "script": "watch",
       "isBackground": true,
+      "problemMatcher": "$esbuild-watch",
       "presentation": {
         "panel": "dedicated",
         "reveal": "never"
