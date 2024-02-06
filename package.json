@@ -14,10 +14,12 @@
     "entity:build": "yarn --cwd packages/vscode-backstage-entity build",
     "entity:watch": "yarn --cwd packages/vscode-backstage-entity watch"
   },
-  "workspaces": [
-    "packages/*"
-  ],
-  "packageManager": "yarn@4.0.0",
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "packageManager": "yarn@3.2.3",
   "devDependencies": {
     "@spotify/eslint-config-typescript": "^15.0.0",
     "@types/eslint": "^8",

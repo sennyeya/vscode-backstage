@@ -2,9 +2,7 @@
   "name": "ajv-error-mapping",
   "version": "0.0.0",
   "license": "MIT",
-  "backstage": {
-    "role": "node-library"
-  },
+  "private": true,
   "exports": {
     ".": "./src/index.ts",
     "./package.json": "./package.json"
