@@ -11,8 +11,8 @@
     "typescript": "^5.2.2"
   },
   "scripts": {
-    "entity:build": "yarn --cwd packages/vscode-backstage-entity build",
-    "entity:watch": "yarn --cwd packages/vscode-backstage-entity watch",
+    "entity:build": "yarn workspace vscode-backstage-entity build",
+    "entity:watch": "yarn workspace vscode-backstage-entity watch",
     "postinstall": "husky install",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write ."
