@@ -1,13 +1,9 @@
 import IntervalTree from "@flatten-js/interval-tree";
 import {
   Connection,
-  CreateFile,
   Diagnostic,
   DiagnosticSeverity,
   Range,
-  TextDocumentEdit,
-  TextEdit,
-  WorkspaceEdit,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { ValidationManager } from "../services/validationManager";
@@ -214,56 +210,6 @@ async function validateEntity(
     ];
   }
   return undefined;
-}
-
-export async function createOutputFile(
-  textDocument: TextDocument,
-  connection: Connection,
-  data: string
-) {
-  // uri of new file
-  const currentPath: string = textDocument.uri.substr(
-    0,
-    textDocument.uri.lastIndexOf("/")
-  );
-
-  const newuri = `${currentPath}/errors.json`;
-
-  // construct a CreateFile variable
-  const createFile: CreateFile = { kind: "create", uri: newuri };
-  // and make into array
-  const createFiles: CreateFile[] = [];
-  createFiles.push(createFile);
-
-  // make a new workspaceEdit variable, specifying a createFile document change
-  let workspaceEdit: WorkspaceEdit = { documentChanges: createFiles };
-
-  // pass to client to apply this edit
-  await connection.workspace.applyEdit(workspaceEdit);
-
-  // To insert the text (and pop up the window), create array of TextEdit
-  const textEdit: TextEdit[] = [];
-  // let document = documents.get(newuri);
-  const documentRange: Range = Range.create(0, 0, 0, data.length);
-  // populate with the text, and where to insert (surely this is what workspaceChange.insert is for?)
-  const textEdits: TextEdit = { range: documentRange, newText: data };
-
-  textEdit.push(textEdits);
-
-  // make a new array of textDocumentEdits, containing our TextEdit (range and text)
-  const textDocumentEdit = TextDocumentEdit.create(
-    { uri: newuri, version: 1 },
-    textEdit
-  );
-  const textDocumentEdits: TextDocumentEdit[] = [];
-  textDocumentEdits.push(textDocumentEdit);
-
-  // set  our workspaceEdit variable to this new TextDocumentEdit
-  workspaceEdit = { documentChanges: textDocumentEdits };
-
-  // and finally apply this to our workspace.
-  // we can probably do this some more elegant way
-  connection.workspace.applyEdit(workspaceEdit);
 }
 
 export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
