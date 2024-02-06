@@ -1,7 +1,7 @@
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { asyncExec } from "../utils/misc";
-import { relative } from "node:path";
-import { default as GitURL } from "git-url-parse";
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { asyncExec } from '../utils/misc';
+import { relative } from 'node:path';
+import { default as GitURL } from 'git-url-parse';
 
 function translateGitToHttps(url: string) {
   const uri = GitURL(url);
@@ -12,25 +12,25 @@ function translateGitToHttps(url: string) {
 class GitClient {
   async isInstalled() {
     try {
-      await asyncExec("git --version", { encoding: "utf8" });
-      console.log("git installed");
+      await asyncExec('git --version', { encoding: 'utf8' });
+      console.log('git installed');
       return true;
     } catch (err) {
-      console.log("git not installed");
+      console.log('git not installed');
       return false;
     }
   }
 
   async getCurrentHash() {
-    const { stdout } = await asyncExec("git rev-parse HEAD");
+    const { stdout } = await asyncExec('git rev-parse HEAD');
     return stdout.trim();
   }
 
   async getRemotes() {
-    const { stdout } = await asyncExec("git remote -v");
+    const { stdout } = await asyncExec('git remote -v');
     return stdout
-      .split("\n")
-      .map((e) => {
+      .split('\n')
+      .map(e => {
         const [name, url, type] = e.split(/[\s]+/);
         return {
           name,
@@ -40,11 +40,11 @@ class GitClient {
           type: type?.substring(1, type.length - 1),
         };
       })
-      .filter((item) => item.type === "fetch" && item.url);
+      .filter(item => item.type === 'fetch' && item.url);
   }
 
   async getRelativeUrl(file: string) {
-    const { stdout } = await asyncExec("git rev-parse --show-toplevel");
+    const { stdout } = await asyncExec('git rev-parse --show-toplevel');
     console.log(stdout, file);
     return relative(stdout.trim(), file);
   }
@@ -60,18 +60,18 @@ export async function getFilePermalink(textDocument: TextDocument) {
     uri.hostname,
     uri.search,
     uri.host,
-    uri.pathname
+    uri.pathname,
   );
-  if (uri.protocol === "file:") {
+  if (uri.protocol === 'file:') {
     if (await gitClient.isInstalled()) {
       const remotes = await gitClient.getRemotes();
       if (remotes.length) {
         const { url } = remotes?.[1];
         return `${url}/blob/${await gitClient.getCurrentHash()}/${await gitClient.getRelativeUrl(
-          uri.pathname
+          uri.pathname,
         )}`;
       }
     }
   }
-  throw new Error("unsupported file.");
+  throw new Error('unsupported file.');
 }

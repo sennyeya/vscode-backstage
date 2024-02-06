@@ -1,12 +1,12 @@
-import IntervalTree from "@flatten-js/interval-tree";
+import IntervalTree from '@flatten-js/interval-tree';
 import {
   Connection,
   Diagnostic,
   integer,
   TextDocumentContentChangeEvent,
   TextDocuments,
-} from "vscode-languageserver";
-import { TextDocument } from "vscode-languageserver-textdocument";
+} from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
 /**
  * Provides cache for selected diagnostics.
@@ -44,7 +44,7 @@ export class ValidationManager {
    */
   public processDiagnostics(
     originFileUri: string,
-    diagnosticsByFile: Map<string, Diagnostic[]>
+    diagnosticsByFile: Map<string, Diagnostic[]>,
   ): void {
     if (!this.documents.get(originFileUri)) {
       // the origin file has been closed before the diagnostics were delivered
@@ -57,7 +57,7 @@ export class ValidationManager {
     }
 
     const unreferencedFiles = [...referencedFiles].filter(
-      (f) => !diagnosticsByFile.has(f)
+      f => !diagnosticsByFile.has(f),
     );
 
     for (const fileUri of unreferencedFiles) {
@@ -88,7 +88,7 @@ export class ValidationManager {
    */
   public cacheDiagnostics(
     originFileUri: string,
-    cacheableDiagnostics: Map<string, Diagnostic[]>
+    cacheableDiagnostics: Map<string, Diagnostic[]>,
   ): void {
     if (!this.documents.get(originFileUri)) {
       // the origin file has been closed before the diagnostics were delivered
@@ -102,7 +102,7 @@ export class ValidationManager {
       for (const diagnostic of fileDiagnostics) {
         diagnosticTree.insert(
           [diagnostic.range.start.line, diagnostic.range.end.line],
-          diagnostic
+          diagnostic,
         );
       }
     }
@@ -110,12 +110,12 @@ export class ValidationManager {
 
   public reconcileCacheItems(
     fileUri: string,
-    changes: TextDocumentContentChangeEvent[]
+    changes: TextDocumentContentChangeEvent[],
   ): void {
     const diagnosticTree = this.validationCache.get(fileUri);
     if (diagnosticTree) {
       for (const change of changes) {
-        if ("range" in change) {
+        if ('range' in change) {
           const invalidatedDiagnostics = diagnosticTree.search([
             change.range.start.line,
             change.range.end.line,
@@ -124,7 +124,7 @@ export class ValidationManager {
             for (const diagnostic of invalidatedDiagnostics as Array<Diagnostic>) {
               diagnosticTree.remove(
                 [diagnostic.range.start.line, diagnostic.range.end.line],
-                diagnostic
+                diagnostic,
               );
             }
           }
@@ -143,13 +143,13 @@ export class ValidationManager {
               for (const diagnostic of displacedDiagnostics as Array<Diagnostic>) {
                 diagnosticTree.remove(
                   [diagnostic.range.start.line, diagnostic.range.end.line],
-                  diagnostic
+                  diagnostic,
                 );
                 diagnostic.range.start.line += displacement;
                 diagnostic.range.end.line += displacement;
                 diagnosticTree.insert(
                   [diagnostic.range.start.line, diagnostic.range.end.line],
-                  diagnostic
+                  diagnostic,
                 );
               }
             }
@@ -160,7 +160,7 @@ export class ValidationManager {
   }
 
   public getValidationFromCache(
-    fileUri: string
+    fileUri: string,
   ): Map<string, Diagnostic[]> | undefined {
     const referencedFiles = this.referencedFilesByOrigin.get(fileUri);
     if (referencedFiles) {
@@ -185,7 +185,7 @@ export class ValidationManager {
   public handleDocumentClosed(fileUri: string): void {
     const referencedFiles = this.referencedFilesByOrigin.get(fileUri);
     if (referencedFiles) {
-      referencedFiles.forEach((f) => this.handleFileUnreferenced(f));
+      referencedFiles.forEach(f => this.handleFileUnreferenced(f));
       // remove the diagnostics origin file from tracking
       this.referencedFilesByOrigin.delete(fileUri);
     }

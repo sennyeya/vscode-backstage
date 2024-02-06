@@ -1,9 +1,9 @@
-import { URI } from "vscode-uri";
-import { Connection } from "vscode-languageserver";
-import { withInterpreter, asyncExec } from "./misc";
-import { getAnsibleCommandExecPath } from "./execPath";
-import { WorkspaceFolderContext } from "../services/workspaceManager";
-import { ExtensionSettings } from "../interfaces/extensionSettings";
+import { URI } from 'vscode-uri';
+import { Connection } from 'vscode-languageserver';
+import { withInterpreter, asyncExec } from './misc';
+import { getAnsibleCommandExecPath } from './execPath';
+import { WorkspaceFolderContext } from '../services/workspaceManager';
+import { ExtensionSettings } from '../interfaces/extensionSettings';
 
 export class CommandRunner {
   private connection: Connection;
@@ -13,7 +13,7 @@ export class CommandRunner {
   constructor(
     connection: Connection,
     context: WorkspaceFolderContext,
-    settings: ExtensionSettings
+    settings: ExtensionSettings,
   ) {
     this.connection = connection;
     this.context = context;
@@ -24,7 +24,7 @@ export class CommandRunner {
     executable: string,
     args: string,
     workingDirectory?: string,
-    mountPaths?: Set<string>
+    mountPaths?: Set<string>,
   ): Promise<{
     stdout: string;
     stderr: string;
@@ -34,9 +34,9 @@ export class CommandRunner {
     let runEnv: NodeJS.ProcessEnv | undefined;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
     const interpreterPath = isEEEnabled
-      ? "python3"
+      ? 'python3'
       : this.settings.python.interpreterPath;
-    if (executable.startsWith("ansible")) {
+    if (executable.startsWith('ansible')) {
       executablePath = isEEEnabled
         ? executable
         : getAnsibleCommandExecPath(executable, this.settings);
@@ -50,7 +50,7 @@ export class CommandRunner {
         executablePath,
         args,
         interpreterPath,
-        this.settings.python.activationScript
+        this.settings.python.activationScript,
       );
     } else {
       // prepare command and env for execution environment run
@@ -58,7 +58,7 @@ export class CommandRunner {
         .executionEnvironment;
       command = executionEnvironment.wrapContainerArgs(
         `${executable} ${args}`,
-        mountPaths
+        mountPaths,
       );
       runEnv = undefined;
     }
@@ -67,7 +67,7 @@ export class CommandRunner {
       ? workingDirectory
       : URI.parse(this.context.workspaceFolder.uri).path;
     const result = await asyncExec(command, {
-      encoding: "utf-8",
+      encoding: 'utf-8',
       cwd: currentWorkingDirectory,
       env: runEnv,
     });
@@ -81,12 +81,12 @@ export class CommandRunner {
    * @returns Complete path of the executable (string) or undefined depending upon the presence of the executable
    */
   public async getExecutablePath(
-    executable: string
+    executable: string,
   ): Promise<string | undefined> {
     try {
       const executablePath = await this.runCommand(
-        "command",
-        `-v ${executable}`
+        'command',
+        `-v ${executable}`,
       );
       return executablePath.stdout.trim();
     } catch (error) {
@@ -94,8 +94,8 @@ export class CommandRunner {
     }
 
     try {
-      const executablePath = await this.runCommand("whereis", executable);
-      const outParts = executablePath.stdout.split(":");
+      const executablePath = await this.runCommand('whereis', executable);
+      const outParts = executablePath.stdout.split(':');
       return outParts.length >= 2 ? outParts[1].trim() : undefined;
     } catch (error) {
       console.log(error);

@@ -1,4 +1,4 @@
-import { AjvError } from "./AjvError";
+import { AjvError } from './AjvError';
 
 export class TypeError extends AjvError {
   getMessage(): string {

@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import { EOL } from "os";
+import { EOL } from 'os';
 import {
   CompletionItem,
   CompletionItemKind,
   MarkupContent,
   Position,
   Range,
-} from "vscode-languageserver";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { isScalar, Node } from "yaml";
-import { IOption } from "../interfaces/module";
-import { WorkspaceFolderContext } from "../services/workspaceManager";
-import { insert, toLspRange } from "../utils/misc";
+} from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { isScalar, Node } from 'yaml';
+import { IOption } from '../interfaces/module';
+import { WorkspaceFolderContext } from '../services/workspaceManager';
+import { insert, toLspRange } from '../utils/misc';
 
 const priorityMap = {
   nameKeyword: 1,
@@ -33,7 +33,7 @@ let isAnsiblePlaybook: boolean;
 export async function doCompletion(
   document: TextDocument,
   position: Position,
-  context: WorkspaceFolderContext
+  context: WorkspaceFolderContext,
 ): Promise<CompletionItem[] | null> {
   isAnsiblePlaybook = true;
 
@@ -49,17 +49,17 @@ export async function doCompletion(
   // 2. When we are at the value level, we use `__`. We do this because based on the above hack, the
   // use of `_:` at the value level creates invalid YAML as `: ` is an incorrect token in yaml string scalar
 
-  dummyMappingCharacter = "_:";
+  dummyMappingCharacter = '_:';
 
   const previousCharactersOfCurrentLine = document.getText({
     start: { line: position.line, character: 0 },
     end: { line: position.line, character: position.character },
   });
 
-  if (previousCharactersOfCurrentLine.includes(": ")) {
+  if (previousCharactersOfCurrentLine.includes(': ')) {
     // this means we have encountered ": " previously in the same line and thus we are
     // at the value level
-    dummyMappingCharacter = "__";
+    dummyMappingCharacter = '__';
   }
 
   preparedText = insert(preparedText, offset, dummyMappingCharacter);
@@ -70,18 +70,18 @@ function getKeywordCompletion(
   document: TextDocument,
   position: Position,
   path: Node[],
-  keywords: Map<string, string | MarkupContent>
+  keywords: Map<string, string | MarkupContent>,
 ): CompletionItem[] {
   // find options that have been already provided by the user
   const providedParams = new Set();
 
   const remainingParams = [...keywords.entries()].filter(
-    ([keyword]) => !providedParams.has(keyword)
+    ([keyword]) => !providedParams.has(keyword),
   );
   const nodeRange = getNodeRange(path[path.length - 1], document);
   return remainingParams.map(([keyword, description]) => {
     const priority =
-      keyword === "name" ? priorityMap.nameKeyword : priorityMap.keyword;
+      keyword === 'name' ? priorityMap.nameKeyword : priorityMap.keyword;
     const completionItem: CompletionItem = {
       label: keyword,
       kind: CompletionItemKind.Property,
@@ -122,7 +122,7 @@ function getHostCompletion(hostObjectList): CompletionItem[] {
  */
 function getNodeRange(node: Node, document: TextDocument): Range | undefined {
   const range = Range.create(Position.create(0, 0), Position.create(0, 0));
-  if (range && isScalar(node) && typeof node.value === "string") {
+  if (range && isScalar(node) && typeof node.value === 'string') {
     const start = range[0];
     let end = range[1];
     // compensate for DUMMY MAPPING
@@ -139,7 +139,7 @@ function getNodeRange(node: Node, document: TextDocument): Range | undefined {
 
 export async function doCompletionResolve(
   completionItem: CompletionItem,
-  context: WorkspaceFolderContext
+  context: WorkspaceFolderContext,
 ): Promise<CompletionItem> {
   if (completionItem.data?.type) {
     // resolve completion for a module option or sub-option
@@ -148,7 +148,7 @@ export async function doCompletionResolve(
       ? `${completionItem.label}:${resolveSuffix(
           completionItem.data.type,
           completionItem.data.firstElementOfList,
-          isAnsiblePlaybook
+          isAnsiblePlaybook,
         )}`
       : `${completionItem.label}`;
 
@@ -169,7 +169,7 @@ function atEndOfLine(document: TextDocument, position: Position): boolean {
   const charAfterCursor = `${document.getText()}\n`[
     document.offsetAt(position)
   ];
-  return charAfterCursor === "\n" || charAfterCursor === "\r";
+  return charAfterCursor === '\n' || charAfterCursor === '\r';
 }
 
 /**
@@ -185,41 +185,41 @@ function firstElementOfList(document: TextDocument, nodeRange: Range): boolean {
   };
   const elementsBeforeKey = document.getText(checkNodeRange).trim();
 
-  return elementsBeforeKey === "-";
+  return elementsBeforeKey === '-';
 }
 
 export function resolveSuffix(
   optionType: string,
   firstElementOfList: boolean,
-  isDocPlaybook: boolean
+  isDocPlaybook: boolean,
 ) {
   let returnSuffix: string;
 
   if (isDocPlaybook) {
     // if doc is a playbook, indentation will shift one tab since a play is a list
     switch (optionType) {
-      case "list":
+      case 'list':
         returnSuffix = firstElementOfList ? `${EOL}\t\t- ` : `${EOL}\t- `;
         break;
-      case "dict":
+      case 'dict':
         returnSuffix = firstElementOfList ? `${EOL}\t\t` : `${EOL}\t`;
         break;
       default:
-        returnSuffix = " ";
+        returnSuffix = ' ';
         break;
     }
   } else {
     // if doc is not a playbook (any other ansible file like task file, etc.) indentation will not
     // include that extra tab
     switch (optionType) {
-      case "list":
+      case 'list':
         returnSuffix = `${EOL}\t- `;
         break;
-      case "dict":
+      case 'dict':
         returnSuffix = `${EOL}\t`;
         break;
       default:
-        returnSuffix = " ";
+        returnSuffix = ' ';
         break;
     }
   }

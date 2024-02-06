@@ -1,25 +1,25 @@
-import IntervalTree from "@flatten-js/interval-tree";
+import IntervalTree from '@flatten-js/interval-tree';
 import {
   Connection,
   Diagnostic,
   DiagnosticSeverity,
   Range,
-} from "vscode-languageserver";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { ValidationManager } from "../services/validationManager";
-import { WorkspaceFolderContext } from "../services/workspaceManager";
-import { parseAllDocuments } from "../utils/yaml";
-import Ajv from "ajv";
-import entitySchema from "../schema/Entity.schema.json";
-import entityEnvelope from "../schema/EntityEnvelope.schema.json";
-import entityMeta from "../schema/EntityMeta.schema.json";
-import apiSchema from "../schema/API.schema.json";
-import componentSchema from "../schema/Component.schema.json";
-import commonSchema from "../schema/common.schema.json";
-import { improveErrors, getRangeForInstancePath } from "ajv-error-mapping";
-import { toLspRange } from "../utils/misc";
-import { ResponseError } from "@backstage/errors";
-import { getFilePermalink } from "../git/getFilePermalink";
+} from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { ValidationManager } from '../services/validationManager';
+import { WorkspaceFolderContext } from '../services/workspaceManager';
+import { parseAllDocuments } from '../utils/yaml';
+import Ajv from 'ajv';
+import entitySchema from '../schema/Entity.schema.json';
+import entityEnvelope from '../schema/EntityEnvelope.schema.json';
+import entityMeta from '../schema/EntityMeta.schema.json';
+import apiSchema from '../schema/API.schema.json';
+import componentSchema from '../schema/Component.schema.json';
+import commonSchema from '../schema/common.schema.json';
+import { improveErrors, getRangeForInstancePath } from 'ajv-error-mapping';
+import { toLspRange } from '../utils/misc';
+import { ResponseError } from '@backstage/errors';
+import { getFilePermalink } from '../git/getFilePermalink';
 
 /**
  * Validates the given document.
@@ -33,7 +33,7 @@ export async function doValidate(
   validationManager: ValidationManager,
   quick = true,
   context?: WorkspaceFolderContext,
-  connection?: Connection
+  connection?: Connection,
 ): Promise<Map<string, Diagnostic[]>> {
   let diagnosticsByFile = new Map<string, Diagnostic[]>();
   if (quick || !context) {
@@ -56,7 +56,7 @@ export async function doValidate(
       fileDiagnostics.push(...getYamlValidation(textDocument));
       const jsonSchemaValidation = await getJsonSchemaValidation(
         textDocument,
-        connection
+        connection,
       );
       fileDiagnostics.push(...(jsonSchemaValidation ?? []));
     }
@@ -70,8 +70,8 @@ const ajv = new Ajv({
   allErrors: true,
 });
 
-ajv.addSchema(apiSchema, "API");
-ajv.addSchema(componentSchema, "Component");
+ajv.addSchema(apiSchema, 'API');
+ajv.addSchema(componentSchema, 'Component');
 ajv.addSchema(entitySchema);
 ajv.addSchema(entityEnvelope);
 ajv.addSchema(entityMeta);
@@ -79,19 +79,19 @@ ajv.addSchema(commonSchema);
 
 async function getJsonSchemaValidation(
   textDocument: TextDocument,
-  connection: Connection
+  connection: Connection,
 ): Promise<Diagnostic[]> {
   const diagnostics: Diagnostic[] = [];
   const yDocuments = parseAllDocuments(textDocument.getText());
 
   for (const yamlDoc of yDocuments) {
     const parsedYaml = yamlDoc.toJS();
-    let validate = ajv.getSchema(parsedYaml.kind ?? "Entity");
+    let validate = ajv.getSchema(parsedYaml.kind ?? 'Entity');
     if (!validate) {
       connection.console.log(
-        `Unknown kind=${parsedYaml.kind}, falling back to validating by entity.`
+        `Unknown kind=${parsedYaml.kind}, falling back to validating by entity.`,
       );
-      validate = ajv.getSchema("Entity");
+      validate = ajv.getSchema('Entity');
     }
     const success = validate(parsedYaml);
 
@@ -100,48 +100,48 @@ async function getJsonSchemaValidation(
       console.log(permalink);
       const backstageValidationErrors = await validateEntity(
         parsedYaml,
-        permalink
+        permalink,
       );
       if (backstageValidationErrors) {
-        backstageValidationErrors.map((error) => {
+        backstageValidationErrors.map(error => {
           const { start, end } = getRangeForInstancePath(
-            error.location || "",
-            yamlDoc
+            error.location || '',
+            yamlDoc,
           );
           const startPosition = textDocument.positionAt(
-            start !== undefined ? start : null
+            start !== undefined ? start : null,
           );
 
           const endPosition = textDocument.positionAt(
-            end !== undefined ? end : null
+            end !== undefined ? end : null,
           );
           diagnostics.push({
             message: `${error.message}`,
             range: Range.create(startPosition, endPosition),
-            source: "Backstage [/validate-entity]",
+            source: 'Backstage [/validate-entity]',
           });
         });
       }
     } else {
       const errors = improveErrors(validate.errors, entitySchema, {
-        type: "yaml",
+        type: 'yaml',
         document: yamlDoc,
       });
 
-      errors.forEach((error) => {
+      errors.forEach(error => {
         const { start, end, title } = error;
         const startPosition = textDocument.positionAt(
-          start !== undefined ? start : null
+          start !== undefined ? start : null,
         );
 
         const endPosition = textDocument.positionAt(
-          end !== undefined ? end : null
+          end !== undefined ? end : null,
         );
 
         diagnostics.push({
           message: title,
           range: Range.create(startPosition, endPosition),
-          source: "Backstage [YAML]",
+          source: 'Backstage [YAML]',
         });
       });
     }
@@ -153,12 +153,12 @@ function standardizeErrors({ errors }: { errors: ResponseError[] }) {
   const standardizedErrors = [];
   console.log(errors);
   for (const error of errors) {
-    if (error.name === "FieldError") {
+    if (error.name === 'FieldError') {
       standardizedErrors.push({
         location: (error.cause as any).location,
         message: error.cause.message,
       });
-    } else if (error.cause?.name === "FieldError") {
+    } else if (error.cause?.name === 'FieldError') {
       standardizedErrors.push({
         location: (error.cause as any).location,
         message: error.cause.message,
@@ -174,37 +174,37 @@ function standardizeErrors({ errors }: { errors: ResponseError[] }) {
 
 async function validateEntity(
   parsedYaml: object,
-  location: string
+  location: string,
 ): Promise<{ location?: string; message: string }[] | undefined> {
   const controller = new AbortController();
 
   const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
     const response = await fetch(
-      "http://localhost:7007/api/catalog/validate-entity",
+      'http://localhost:7007/api/catalog/validate-entity',
       {
-        method: "post",
+        method: 'post',
         body: JSON.stringify({
           location: `url:${location}`,
           entity: parsedYaml,
         }),
         signal: controller.signal,
         headers: {
-          "content-type": "application/json",
+          'content-type': 'application/json',
         },
-      }
+      },
     );
     clearTimeout(timeoutId);
     if (!response.ok) {
       console.log(response);
       return standardizeErrors(await response.json());
     }
-    console.log("succesfully validated");
+    console.log('succesfully validated');
   } catch (err) {
-    console.error("failed to load entities", err, err.cause);
+    console.error('failed to load entities', err, err.cause);
     return [
       {
-        location: "",
+        location: '',
         message: err.cause?.message ?? err.message,
       },
     ];
@@ -218,15 +218,15 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
     prettyErrors: false,
   });
   const rangeTree = new IntervalTree<Diagnostic>();
-  yDocuments.forEach((yDoc) => {
-    yDoc.errors.forEach((error) => {
+  yDocuments.forEach(yDoc => {
+    yDoc.errors.forEach(error => {
       const range = toLspRange(error.pos, textDocument);
       let severity: DiagnosticSeverity;
       switch (error.name) {
-        case "YAMLParseError":
+        case 'YAMLParseError':
           severity = DiagnosticSeverity.Error;
           break;
-        case "YAMLWarning":
+        case 'YAMLWarning':
           severity = DiagnosticSeverity.Warning;
           break;
         default:
@@ -238,7 +238,7 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
           message: scrubYamlErrorMessage(error.message),
           range: range || Range.create(0, 0, 0, 0),
           severity,
-          source: "Backstage [YAML]",
+          source: 'Backstage [YAML]',
         });
       }
     });
@@ -252,8 +252,8 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
 
 function scrubYamlErrorMessage(message: string) {
   console.log(message);
-  const messageWithoutTraceback = message.slice(0, message.indexOf(":\n\n"));
+  const messageWithoutTraceback = message.slice(0, message.indexOf(':\n\n'));
   return `${messageWithoutTraceback
-    .replace(/at line [0-9]+, column [0-9]+/g, "")
+    .replace(/at line [0-9]+, column [0-9]+/g, '')
     .trim()}.`;
 }

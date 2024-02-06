@@ -1,4 +1,4 @@
-import { AjvError } from "./AjvError";
+import { AjvError } from './AjvError';
 
 export class EnumError extends AjvError {
   getMessage(): string {
@@ -6,6 +6,6 @@ export class EnumError extends AjvError {
   }
 
   getValue() {
-    return this.error.params.allowedValues.join(",");
+    return this.error.params.allowedValues.join(',');
   }
 }

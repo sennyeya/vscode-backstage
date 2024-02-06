@@ -3,8 +3,8 @@ import {
   SemanticTokens,
   SemanticTokensBuilder,
   SemanticTokenTypes,
-} from "vscode-languageserver";
-import { TextDocument } from "vscode-languageserver-textdocument";
+} from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   isMap,
   isNode,
@@ -14,10 +14,10 @@ import {
   Node,
   Scalar,
   YAMLMap,
-} from "yaml";
-import { IOption } from "../interfaces/module";
-import { getOrigRange, parseAllDocuments } from "../utils/yaml";
-import { toLspRange } from "../utils/misc";
+} from 'yaml';
+import { IOption } from '../interfaces/module';
+import { getOrigRange, parseAllDocuments } from '../utils/yaml';
+import { toLspRange } from '../utils/misc';
 
 export const tokenTypes = [
   SemanticTokenTypes.method,
@@ -27,17 +27,17 @@ export const tokenTypes = [
 ];
 
 const tokenTypesLegend = new Map(
-  tokenTypes.map((value, index) => [value, index])
+  tokenTypes.map((value, index) => [value, index]),
 );
 
 export const tokenModifiers = [SemanticTokenModifiers.definition];
 
 const tokenModifiersLegend = new Map(
-  tokenModifiers.map((value, index) => [value, index])
+  tokenModifiers.map((value, index) => [value, index]),
 );
 
 export async function doSemanticTokens(
-  document: TextDocument
+  document: TextDocument,
 ): Promise<SemanticTokens> {
   const builder = new SemanticTokensBuilder();
   const yDocuments = parseAllDocuments(document.getText());
@@ -52,19 +52,19 @@ export async function doSemanticTokens(
 async function markSemanticTokens(
   path: Node[],
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ): Promise<void> {}
 
 function markModuleParameters(
   moduleParamMap: YAMLMap,
   options: Map<string, IOption> | undefined,
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   for (const moduleParamPair of moduleParamMap.items) {
     if (isScalar(moduleParamPair.key)) {
       const option = options?.get(
-        (moduleParamPair.key.value as any).toString()
+        (moduleParamPair.key.value as any).toString(),
       );
       if (option) {
         markNode(
@@ -72,17 +72,17 @@ function markModuleParameters(
           SemanticTokenTypes.method,
           [],
           builder,
-          document
+          document,
         );
-        if (option.type === "dict" && isMap(moduleParamPair.value)) {
+        if (option.type === 'dict' && isMap(moduleParamPair.value)) {
           // highlight sub-parameters
           markModuleParameters(
             moduleParamPair.value,
             option.suboptions,
             builder,
-            document
+            document,
           );
-        } else if (option.type === "list" && isSeq(moduleParamPair.value)) {
+        } else if (option.type === 'list' && isSeq(moduleParamPair.value)) {
           // highlight list of sub-parameters
           for (const item of moduleParamPair.value.items) {
             if (isMap(item)) {
@@ -95,14 +95,14 @@ function markModuleParameters(
           markAllNestedKeysAsOrdinary(
             moduleParamPair.value as Node,
             builder,
-            document
+            document,
           );
         }
       } else {
         markAllNestedKeysAsOrdinary(
           moduleParamPair.value as Node,
           builder,
-          document
+          document,
         );
       }
     } else if (isNode(moduleParamPair.value)) {
@@ -114,7 +114,7 @@ function markModuleParameters(
 function markAllNestedKeysAsOrdinary(
   node: Node,
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   if (isPair(node)) {
     if (isScalar(node.key)) {
@@ -139,7 +139,7 @@ function markAllNestedKeysAsOrdinary(
 function markKeyword(
   node: Scalar,
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   markNode(node, SemanticTokenTypes.keyword, [], builder, document);
 }
@@ -147,14 +147,14 @@ function markKeyword(
 function markOrdinaryKey(
   node: Scalar,
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   markNode(
     node,
     SemanticTokenTypes.property,
     [SemanticTokenModifiers.definition],
     builder,
-    document
+    document,
   );
 }
 
@@ -163,7 +163,7 @@ function markNode(
   tokenType: SemanticTokenTypes,
   semanticTokenModifiers: SemanticTokenModifiers[],
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   const range = getOrigRange(node);
   if (range) {
@@ -175,7 +175,7 @@ function markNode(
       startPosition.character,
       length,
       encodeTokenType(tokenType),
-      encodeTokenModifiers(semanticTokenModifiers)
+      encodeTokenModifiers(semanticTokenModifiers),
     );
   }
 }
@@ -189,7 +189,7 @@ function encodeTokenType(tokenType: SemanticTokenTypes) {
 }
 
 function encodeTokenModifiers(
-  semanticTokenModifiers: SemanticTokenModifiers[]
+  semanticTokenModifiers: SemanticTokenModifiers[],
 ): number {
   let encodedModifiers = 0;
   for (const tokenModifier of semanticTokenModifiers) {

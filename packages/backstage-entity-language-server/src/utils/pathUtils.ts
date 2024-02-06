@@ -1,4 +1,4 @@
-import { sync } from "glob";
+import { sync } from 'glob';
 
 /**
  * A glob utility function that that accepts array of patterns and also
@@ -9,16 +9,16 @@ import { sync } from "glob";
 export function globArray(arrayOfPatterns: string[]): string[] {
   // Patterns to be matched
   const matchPatterns = arrayOfPatterns.filter(
-    (pattern) => !pattern.startsWith("!")
+    pattern => !pattern.startsWith('!'),
   );
 
   // Patterns to be excluded
   const ignorePatterns = arrayOfPatterns
-    .filter((pattern) => pattern.startsWith("!"))
-    .map((item) => item.slice(1));
+    .filter(pattern => pattern.startsWith('!'))
+    .map(item => item.slice(1));
 
   let matchFiles: string[] = [];
-  matchPatterns.forEach((pattern) => {
+  matchPatterns.forEach(pattern => {
     const matchedFiles = sync(pattern);
     matchFiles = matchFiles.concat(matchedFiles);
   });
@@ -26,15 +26,14 @@ export function globArray(arrayOfPatterns: string[]): string[] {
 
   if (ignorePatterns.length === 0) {
     return [...matchFilesSet];
-  } 
-    let matchFilesAfterExclusion: string[] = [];
-    matchPatterns.forEach((pattern) => {
-      const ignoredFiles = sync(pattern, {
-        ignore: ignorePatterns,
-      });
-      matchFilesAfterExclusion = matchFilesAfterExclusion.concat(ignoredFiles);
+  }
+  let matchFilesAfterExclusion: string[] = [];
+  matchPatterns.forEach(pattern => {
+    const ignoredFiles = sync(pattern, {
+      ignore: ignorePatterns,
     });
-    const matchFilesAfterExclusionSet = new Set(matchFilesAfterExclusion);
-    return [...matchFilesAfterExclusionSet];
-  
+    matchFilesAfterExclusion = matchFilesAfterExclusion.concat(ignoredFiles);
+  });
+  const matchFilesAfterExclusionSet = new Set(matchFilesAfterExclusion);
+  return [...matchFilesAfterExclusionSet];
 }

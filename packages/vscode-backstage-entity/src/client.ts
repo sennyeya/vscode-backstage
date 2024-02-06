@@ -1,23 +1,23 @@
-import { watchFile } from "fs";
-import * as path from "path";
-import { ExtensionContext, window } from "vscode";
+import { watchFile } from 'fs';
+import * as path from 'path';
+import { ExtensionContext, window } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind,
   RevealOutputChannelOn,
-} from "vscode-languageclient/node";
+} from 'vscode-languageclient/node';
 
-const lsName = "Backstage Entity Support";
+const lsName = 'Backstage Entity Support';
 
 export const startClient = async (context: ExtensionContext) => {
   const serverModule = context.asAbsolutePath(
-    path.join("out", "backstage-entity-language-server", "src", "index.js")
+    path.join('out', 'backstage-entity-language-server', 'src', 'index.js'),
   );
 
   // server is run at port 6010 for debugging
-  const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
+  const debugOptions = { execArgv: ['--nolazy', '--inspect=6010'] };
 
   const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
@@ -32,15 +32,15 @@ export const startClient = async (context: ExtensionContext) => {
 
   const clientOptions: LanguageClientOptions = {
     // register the server for catalog-info.yaml documents
-    documentSelector: [{ scheme: "file", language: "backstage-entity" }],
+    documentSelector: [{ scheme: 'file', language: 'backstage-entity' }],
     revealOutputChannelOn: RevealOutputChannelOn.Never,
   };
 
   const client = new LanguageClient(
-    "backstage-entity-server",
-    "Backstage Entity Language Server",
+    'backstage-entity-server',
+    'Backstage Entity Language Server',
     serverOptions,
-    clientOptions
+    clientOptions,
   );
 
   watchFile(serverModule, () => {
@@ -48,9 +48,9 @@ export const startClient = async (context: ExtensionContext) => {
   });
 
   context.subscriptions.push(
-    client.onTelemetry((e) => {
+    client.onTelemetry(e => {
       console.log(e);
-    })
+    }),
   );
 
   try {

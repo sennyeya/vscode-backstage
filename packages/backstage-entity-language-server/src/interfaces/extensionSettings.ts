@@ -6,9 +6,9 @@
  * 3. Go to `settingsManager.ts` and add the appropriate change
  */
 
-export type IContainerEngine = "auto" | "podman" | "docker";
+export type IContainerEngine = 'auto' | 'podman' | 'docker';
 
-export type IPullPolicy = "always" | "missing" | "never" | "tag";
+export type IPullPolicy = 'always' | 'missing' | 'never' | 'tag';
 
 export interface ExtensionSettingsWithDescription {
   ansible: AnsibleSettingsWithDescription;

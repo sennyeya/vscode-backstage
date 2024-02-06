@@ -1,5 +1,5 @@
-import * as _ from "lodash";
-import { TextDocument } from "vscode-languageserver-textdocument";
+import * as _ from 'lodash';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   Document,
   DocumentOptions,
@@ -11,8 +11,8 @@ import {
   ParseOptions,
   SchemaOptions,
   YAMLMap,
-} from "yaml";
-import { Position } from "vscode-languageserver";
+} from 'yaml';
+import { Position } from 'vscode-languageserver';
 
 type Options = ParseOptions & DocumentOptions & SchemaOptions;
 
@@ -20,10 +20,10 @@ export function getPathAt(
   document: TextDocument,
   position: Position,
   docs: Document[],
-  inclusive = false
+  inclusive = false,
 ): Node[] | null {
   const offset = document.offsetAt(position);
-  const doc = _.find(docs, (d) => contains(d.contents, offset, inclusive));
+  const doc = _.find(docs, d => contains(d.contents, offset, inclusive));
   if (doc && doc.contents) {
     return getPathAtOffset([doc.contents], offset, inclusive, doc);
   }
@@ -33,7 +33,7 @@ export function getPathAt(
 export function contains(
   node: Node | null,
   offset: number,
-  inclusive: boolean
+  inclusive: boolean,
 ): boolean {
   const range = getOrigRange(node);
   const start = range?.[0] || 0;
@@ -49,34 +49,34 @@ export function getPathAtOffset(
   path: Node[],
   offset: number,
   inclusive: boolean,
-  doc: Document
+  doc: Document,
 ): Node[] | null {
   if (path) {
     const currentNode = path[path.length - 1];
     if (isMap(currentNode)) {
-      let pair = _.find(currentNode.items, (p) =>
-        contains(p.key as Node, offset, inclusive)
+      let pair = _.find(currentNode.items, p =>
+        contains(p.key as Node, offset, inclusive),
       );
       if (pair) {
         return getPathAtOffset(
           path.concat(pair as unknown as Node, pair.key as Node),
           offset,
           inclusive,
-          doc
+          doc,
         );
       }
-      pair = _.find(currentNode.items, (p) =>
-        contains(p.value as Node, offset, inclusive)
+      pair = _.find(currentNode.items, p =>
+        contains(p.value as Node, offset, inclusive),
       );
       if (pair) {
         return getPathAtOffset(
           path.concat(pair as unknown as Node, pair.value as Node),
           offset,
           inclusive,
-          doc
+          doc,
         );
       }
-      pair = _.find(currentNode.items, (p) => {
+      pair = _.find(currentNode.items, p => {
         const inBetweenNode = doc.createNode(null);
         const start = getOrigRange(p.key as Node)?.[1];
         const end = getOrigRange(p.value as Node)?.[0];
@@ -90,15 +90,15 @@ export function getPathAtOffset(
         return path.concat(pair as unknown as Node, doc.createNode(null));
       }
     } else if (isSeq(currentNode)) {
-      const item = _.find(currentNode.items, (n) =>
-        contains(n as Node, offset, inclusive)
+      const item = _.find(currentNode.items, n =>
+        contains(n as Node, offset, inclusive),
       );
       if (item) {
         return getPathAtOffset(
           path.concat(item as Node),
           offset,
           inclusive,
-          doc
+          doc,
         );
       }
     } else if (contains(currentNode, offset, inclusive)) {
@@ -110,7 +110,7 @@ export function getPathAtOffset(
 }
 
 export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {
-  return mapNode.items.map((pair) => {
+  return mapNode.items.map(pair => {
     if (pair.key && isScalar(pair.key)) {
       return (pair.key.value as any).toString();
     }
@@ -119,7 +119,7 @@ export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {
 }
 
 export function getOrigRange(
-  node: Node | null | undefined
+  node: Node | null | undefined,
 ): [number | undefined, number | undefined] | null | undefined {
   if (node?.range) {
     const range = node.range;
@@ -135,7 +135,7 @@ export function parseAllDocuments(str: string, options?: Options): Document[] {
   }
   const docs = parseAllYamlDocuments(
     str,
-    Object.assign({ keepSourceTokens: true, options })
+    Object.assign({ keepSourceTokens: true, options }),
   );
   return docs;
 }

@@ -1,9 +1,9 @@
-import * as child_process from "child_process";
-import { promises as fs } from "fs";
-import { promisify } from "util";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { Range } from "vscode-languageserver-types";
-import * as path from "path";
+import * as child_process from 'child_process';
+import { promises as fs } from 'fs';
+import { promisify } from 'util';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Range } from 'vscode-languageserver-types';
+import * as path from 'path';
 
 export async function fileExists(filePath: string): Promise<boolean> {
   return !!(await fs.stat(filePath).catch(() => false));
@@ -13,18 +13,18 @@ export const asyncExec = promisify(child_process.exec);
 
 export function toLspRange(
   range: [number | undefined, number | undefined],
-  textDocument: TextDocument
+  textDocument: TextDocument,
 ): Range {
   const start = textDocument.positionAt(range[0] ?? 0);
   const end = textDocument.positionAt(
-    range[1] ?? textDocument.getText().length
+    range[1] ?? textDocument.getText().length,
   );
   return Range.create(start, end);
 }
 
 export function hasOwnProperty<X, Y extends PropertyKey>(
   obj: X,
-  prop: Y
+  prop: Y,
 ): obj is X & Record<Y, unknown> {
   return isObject(obj) && obj.hasOwnProperty(prop);
 }
@@ -33,7 +33,7 @@ export function hasOwnProperty<X, Y extends PropertyKey>(
  * Checks whether `obj` is a non-null object.
  */
 export function isObject<X>(obj: X): obj is X & Record<PropertyKey, unknown> {
-  return obj && typeof obj === "object";
+  return obj && typeof obj === 'object';
 }
 
 export function insert(str: string, index: number, val: string): string {
@@ -47,14 +47,14 @@ export function withInterpreter(
   executable: string,
   args: string,
   interpreterPath: string,
-  activationScript: string
+  activationScript: string,
 ): [string, NodeJS.ProcessEnv | undefined] {
   let command = `${executable} ${args}`; // base case
 
   const newEnv = Object.assign({}, process.env, {
-    NO_COLOR: "1", // ensure none of the output produce color characters
-    ANSIBLE_FORCE_COLOR: "0", // ensure output is parseable (no ANSI)
-    PYTHONBREAKPOINT: "0", // We want to be sure that python debugger is never
+    NO_COLOR: '1', // ensure none of the output produce color characters
+    ANSIBLE_FORCE_COLOR: '0', // ensure output is parseable (no ANSI)
+    PYTHONBREAKPOINT: '0', // We want to be sure that python debugger is never
     // triggered, even if we mistakenly left a breakpoint() there while
     // debugging ansible- lint, or another tool we call.
   });
@@ -65,9 +65,9 @@ export function withInterpreter(
   }
 
   if (interpreterPath) {
-    const virtualEnv = path.resolve(interpreterPath, "../..");
+    const virtualEnv = path.resolve(interpreterPath, '../..');
 
-    const pathEntry = path.join(virtualEnv, "bin");
+    const pathEntry = path.join(virtualEnv, 'bin');
     if (path.isAbsolute(executable)) {
       // if the user provided a path to the executable, we directly execute the app.
       command = `${executable} ${args}`;
@@ -87,8 +87,8 @@ export function withInterpreter(
  */
 export function getUnsupportedError(): string | undefined {
   // win32 applies to x64 arch too, is the platform name
-  if (process.platform === "win32") {
-    return "Ansible Language Server can only run inside WSL on Windows. Refer to vscode documentation for more details.";
+  if (process.platform === 'win32') {
+    return 'Ansible Language Server can only run inside WSL on Windows. Refer to vscode documentation for more details.';
   }
-  return "unknown";
+  return 'unknown';
 }

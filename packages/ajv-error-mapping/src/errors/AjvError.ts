@@ -1,4 +1,4 @@
-import { ErrorObject } from "ajv";
+import { ErrorObject } from 'ajv';
 
 export interface AjvErrorProperties {
   ajvError: ErrorObject;
@@ -49,7 +49,7 @@ export abstract class AjvError {
         perInstancePathDuplicated.set(errorInformation.instancePath, new Map());
       }
       const atPath = perInstancePathDuplicated.get(
-        errorInformation.instancePath
+        errorInformation.instancePath,
       );
       if (!atPath.has(errorInformation.value)) {
         atPath.set(errorInformation.value, {
