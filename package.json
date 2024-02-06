@@ -12,18 +12,35 @@
   },
   "scripts": {
     "entity:build": "yarn --cwd packages/vscode-backstage-entity build",
-    "entity:watch": "yarn --cwd packages/vscode-backstage-entity watch"
+    "entity:watch": "yarn --cwd packages/vscode-backstage-entity watch",
+    "postinstall": "husky install",
+    "prettier:check": "prettier --check .",
+    "prettier:fix": "prettier --write ."
   },
   "workspaces": {
     "packages": [
       "packages/*"
     ]
   },
+  "prettier": "@spotify/prettier-config",
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+      "eslint --cache --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
   "packageManager": "yarn@3.2.3",
   "devDependencies": {
     "@spotify/eslint-config-typescript": "^15.0.0",
+    "@spotify/prettier-config": "^14.0.0",
     "@types/eslint": "^8",
     "eslint": "^8.54.0",
-    "eslint-plugin-unused-imports": "^3.0.0"
+    "eslint-plugin-unused-imports": "^3.0.0",
+    "husky": ">=6",
+    "lint-staged": ">=10",
+    "prettier": "^3.2.5"
   }
 }
