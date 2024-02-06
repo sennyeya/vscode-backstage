@@ -20,8 +20,10 @@ import entityMeta from "../schema/EntityMeta.schema.json";
 import apiSchema from "../schema/API.schema.json";
 import componentSchema from "../schema/Component.schema.json";
 import commonSchema from "../schema/common.schema.json";
-import improveErrors from "ajv-error-mapping";
+import { improveErrors, getRangeForInstancePath } from "ajv-error-mapping";
 import { toLspRange } from "../utils/misc";
+import { ResponseError } from "@backstage/errors";
+import { getFilePermalink } from "../git/getFilePermalink";
 
 /**
  * Validates the given document.
@@ -38,7 +40,6 @@ export async function doValidate(
   connection?: Connection
 ): Promise<Map<string, Diagnostic[]>> {
   let diagnosticsByFile = new Map<string, Diagnostic[]>();
-  console.log(quick, context);
   if (quick || !context) {
     // get validation from cache
     diagnosticsByFile =
@@ -89,39 +90,130 @@ async function getJsonSchemaValidation(
 
   for (const yamlDoc of yDocuments) {
     const parsedYaml = yamlDoc.toJS();
-    const validate = ajv.getSchema(parsedYaml.kind ?? "Entity");
-    if (!validate) continue;
+    let validate = ajv.getSchema(parsedYaml.kind ?? "Entity");
+    if (!validate) {
+      connection.console.log(
+        `Unknown kind=${parsedYaml.kind}, falling back to validating by entity.`
+      );
+      validate = ajv.getSchema("Entity");
+    }
     const success = validate(parsedYaml);
-    if (success) continue;
-    const errors = improveErrors(validate.errors, entitySchema, {
-      type: "yaml",
-      document: yamlDoc,
-    });
-    console.log(validate.errors);
-    await createOutputFile(
-      textDocument,
-      connection,
-      JSON.stringify(validate.errors)
-    );
 
-    errors.forEach((error) => {
-      const { start, end, title } = error;
-      const startPosition = textDocument.positionAt(
-        start !== undefined ? start : null
+    if (success) {
+      const permalink = await getFilePermalink(textDocument);
+      console.log(permalink);
+      const backstageValidationErrors = await validateEntity(
+        parsedYaml,
+        permalink
       );
+      if (backstageValidationErrors) {
+        backstageValidationErrors.map((error) => {
+          const { start, end } = getRangeForInstancePath(
+            error.location || "",
+            yamlDoc
+          );
+          const startPosition = textDocument.positionAt(
+            start !== undefined ? start : null
+          );
 
-      const endPosition = textDocument.positionAt(
-        end !== undefined ? end : null
-      );
-
-      diagnostics.push({
-        message: title,
-        range: Range.create(startPosition, endPosition),
-        source: "Backstage [YAML]",
+          const endPosition = textDocument.positionAt(
+            end !== undefined ? end : null
+          );
+          diagnostics.push({
+            message: `${error.message}`,
+            range: Range.create(startPosition, endPosition),
+            source: "Backstage [/validate-entity]",
+          });
+        });
+      }
+    } else {
+      const errors = improveErrors(validate.errors, entitySchema, {
+        type: "yaml",
+        document: yamlDoc,
       });
-    });
+
+      errors.forEach((error) => {
+        const { start, end, title } = error;
+        const startPosition = textDocument.positionAt(
+          start !== undefined ? start : null
+        );
+
+        const endPosition = textDocument.positionAt(
+          end !== undefined ? end : null
+        );
+
+        diagnostics.push({
+          message: title,
+          range: Range.create(startPosition, endPosition),
+          source: "Backstage [YAML]",
+        });
+      });
+    }
   }
   return diagnostics;
+}
+
+function standardizeErrors({ errors }: { errors: ResponseError[] }) {
+  const standardizedErrors = [];
+  console.log(errors);
+  for (const error of errors) {
+    if (error.name === "FieldError") {
+      standardizedErrors.push({
+        location: (error.cause as any).location,
+        message: error.cause.message,
+      });
+    } else if (error.cause?.name === "FieldError") {
+      standardizedErrors.push({
+        location: (error.cause as any).location,
+        message: error.cause.message,
+      });
+    } else {
+      standardizedErrors.push({
+        message: error.message,
+      });
+    }
+  }
+  return standardizedErrors;
+}
+
+async function validateEntity(
+  parsedYaml: object,
+  location: string
+): Promise<{ location?: string; message: string }[] | undefined> {
+  const controller = new AbortController();
+
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(
+      "http://localhost:7007/api/catalog/validate-entity",
+      {
+        method: "post",
+        body: JSON.stringify({
+          location: `url:${location}`,
+          entity: parsedYaml,
+        }),
+        signal: controller.signal,
+        headers: {
+          "content-type": "application/json",
+        },
+      }
+    );
+    clearTimeout(timeoutId);
+    if (!response.ok) {
+      console.log(response);
+      return standardizeErrors(await response.json());
+    }
+    console.log("succesfully validated");
+  } catch (err) {
+    console.error("failed to load entities", err, err.cause);
+    return [
+      {
+        location: "",
+        message: err.cause?.message ?? err.message,
+      },
+    ];
+  }
+  return undefined;
 }
 
 export async function createOutputFile(

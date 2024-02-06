@@ -58,9 +58,8 @@ const connectionProxy = new Proxy(connection, {
       return (handler: NotificationHandler<DidChangeTextDocumentParams>) => {
         docChangeHandlers.push(handler);
       };
-    } 
-      return Reflect.get(target, p, receiver);
-    
+    }
+    return Reflect.get(target, p, receiver);
   },
 });
 
