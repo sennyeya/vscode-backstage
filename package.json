@@ -15,7 +15,9 @@
     "entity:watch": "yarn workspace vscode-backstage-entity watch",
     "postinstall": "husky install",
     "prettier:check": "prettier --check .",
-    "prettier:fix": "prettier --write ."
+    "prettier:fix": "prettier --write .",
+    "tsc": "tsc",
+    "test": "backstage-cli repo test"
   },
   "workspaces": {
     "packages": [
