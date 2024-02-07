@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import * as _ from "lodash";
+import * as _ from 'lodash';
 import {
   ClientCapabilities,
   Connection,
   WorkspaceFolder,
   WorkspaceFoldersChangeEvent,
-} from "vscode-languageserver";
-import * as path from "path";
-import { URI } from "vscode-uri";
+} from 'vscode-languageserver';
+import * as path from 'path';
+import { URI } from 'vscode-uri';
 
 /**
  * Holds the overall context for the whole workspace.
@@ -41,7 +41,7 @@ export class WorkspaceManager {
         context = new WorkspaceFolderContext(
           this.connection,
           workspaceFolder,
-          this
+          this,
         );
         this.folderContexts.set(workspaceFolder.uri, context);
       }
@@ -51,12 +51,12 @@ export class WorkspaceManager {
   }
 
   public async forEachContext(
-    callbackfn: (value: WorkspaceFolderContext) => Promise<void> | void
+    callbackfn: (value: WorkspaceFolderContext) => Promise<void> | void,
   ): Promise<void> {
     await Promise.all(
-      _.map(Array.from(this.folderContexts.values()), (folder) =>
-        callbackfn(folder)
-      )
+      _.map(Array.from(this.folderContexts.values()), folder =>
+        callbackfn(folder),
+      ),
     );
   }
 
@@ -84,20 +84,20 @@ export class WorkspaceManager {
     this.connection.console.log(
       `workspace folder explicitly set to ${
         URI.parse(workspaceFolder.uri).path
-      }`
+      }`,
     );
     return workspaceFolder;
   }
 
   public handleWorkspaceChanged(event: WorkspaceFoldersChangeEvent): void {
-    const removedUris = new Set(event.removed.map((folder) => folder.uri));
+    const removedUris = new Set(event.removed.map(folder => folder.uri));
 
     // We only keep contexts of existing workspace folders
     for (const removedUri of removedUris) {
       this.folderContexts.delete(removedUri);
     }
 
-    const newWorkspaceFolders = this.sortedWorkspaceFolders.filter((folder) => {
+    const newWorkspaceFolders = this.sortedWorkspaceFolders.filter(folder => {
       return !removedUris.has(folder.uri);
     });
     newWorkspaceFolders.push(...event.added);
@@ -124,7 +124,7 @@ export class WorkspaceFolderContext {
   constructor(
     connection: Connection,
     workspaceFolder: WorkspaceFolder,
-    workspaceManager: WorkspaceManager
+    workspaceManager: WorkspaceManager,
   ) {
     this.connection = connection;
     this.clientCapabilities = workspaceManager.clientCapabilities;

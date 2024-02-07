@@ -5,10 +5,10 @@ import {
   TextDocumentSyncKind,
   NotificationHandler,
   DidChangeTextDocumentParams,
-} from "vscode-languageserver/node";
+} from 'vscode-languageserver/node';
 
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { BackstageEntityLanguageService } from "./BackstageEntityLanguageService";
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { BackstageEntityLanguageService } from './BackstageEntityLanguageService';
 
 // Creates the LSP connection
 const connection = createConnection(ProposedFeatures.all);
@@ -19,16 +19,16 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 // The workspace folder this server is operating on
 let workspaceFolder: string | null;
 
-documents.onDidOpen((event) => {
+documents.onDidOpen(event => {
   connection.console.log(
-    `[Server(${process.pid}) ${workspaceFolder}] Document opened: ${event.document.uri}`
+    `[Server(${process.pid}) ${workspaceFolder}] Document opened: ${event.document.uri}`,
   );
 });
 
-connection.onInitialize((params) => {
+connection.onInitialize(params => {
   workspaceFolder = params.rootUri;
   connection.console.log(
-    `[Server(${process.pid}) ${workspaceFolder}] Started and initialize received`
+    `[Server(${process.pid}) ${workspaceFolder}] Started and initialize received`,
   );
   return {
     capabilities: {
@@ -42,7 +42,7 @@ connection.onInitialize((params) => {
 
 const docChangeHandlers: NotificationHandler<DidChangeTextDocumentParams>[] =
   [];
-connection.onDidChangeTextDocument((params) => {
+connection.onDidChangeTextDocument(params => {
   for (const handler of docChangeHandlers) {
     handler(params);
   }
@@ -54,7 +54,7 @@ connection.onDidChangeTextDocument((params) => {
 // overrides, such as `onDidChangeTextDocument`.
 const connectionProxy = new Proxy(connection, {
   get: (target, p, receiver) => {
-    if (p === "onDidChangeTextDocument") {
+    if (p === 'onDidChangeTextDocument') {
       return (handler: NotificationHandler<DidChangeTextDocumentParams>) => {
         docChangeHandlers.push(handler);
       };

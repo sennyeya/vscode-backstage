@@ -1,18 +1,18 @@
-import { ErrorObject } from "ajv";
-import { Document, Scalar } from "yaml";
-import { AjvError, DeduplicatedAjvError } from "./errors/AjvError";
-import { mapping } from "./errors/ErrorMapping";
+import { ErrorObject } from 'ajv';
+import { Document, Scalar } from 'yaml';
+import { AjvError, DeduplicatedAjvError } from './errors/AjvError';
+import { mapping } from './errors/ErrorMapping';
 
 function getParts(jsonRef: string) {
   return jsonRef
-    .replace(/^\//, "")
-    .split("/")
-    .map((e) => e.replace("~1", "/"));
+    .replace(/^\//, '')
+    .split('/')
+    .map(e => e.replace('~1', '/'));
 }
 
 export function getRangeForInstancePath(
   jsonRef: string | string[],
-  document: Document
+  document: Document,
 ): { start: number | undefined; end: number | undefined } {
   let parts = jsonRef;
   if (!Array.isArray(jsonRef)) {
@@ -33,9 +33,9 @@ export function improveErrors(
   errors: ErrorObject[],
   schema: unknown,
   options: {
-    type: "yaml";
+    type: 'yaml';
     document: Document;
-  }
+  },
 ) {
   // 1. take AJV errors and get a readable set of _deduplicated_ error messages.
   // 2. be able to map from an AJV error to a string in YAML.
@@ -52,10 +52,10 @@ export function improveErrors(
   const outputErrors: { title: string; start: number; end: number }[] = [];
 
   const addMapToErrors = (
-    map: Map<string, Map<string, DeduplicatedAjvError<string[]>>>
+    map: Map<string, Map<string, DeduplicatedAjvError<string[]>>>,
   ) => {
     map.forEach((propertyMap, instancePath) => {
-      propertyMap.forEach((property) => {
+      propertyMap.forEach(property => {
         const range = getRangeForInstancePath(instancePath, options.document);
 
         outputErrors.push({

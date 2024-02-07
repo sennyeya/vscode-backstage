@@ -6,21 +6,18 @@ import {
   InitializeResult,
   TextDocuments,
   TextDocumentSyncKind,
-} from "vscode-languageserver";
-import { TextDocument } from "vscode-languageserver-textdocument";
+} from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   doCompletion,
   doCompletionResolve,
-} from "./providers/completionProvider";
-import { getDefinition } from "./providers/definitionProvider";
-import { doHover } from "./providers/hoverProvider";
-import {
-  tokenModifiers,
-  tokenTypes,
-} from "./providers/semanticTokenProvider";
-import { doValidate } from "./providers/validationProvider";
-import { ValidationManager } from "./services/validationManager";
-import { WorkspaceManager } from "./services/workspaceManager";
+} from './providers/completionProvider';
+import { getDefinition } from './providers/definitionProvider';
+import { doHover } from './providers/hoverProvider';
+import { tokenModifiers, tokenTypes } from './providers/semanticTokenProvider';
+import { doValidate } from './providers/validationProvider';
+import { ValidationManager } from './services/validationManager';
+import { WorkspaceManager } from './services/workspaceManager';
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.
@@ -60,7 +57,7 @@ export class BackstageEntityLanguageService {
           semanticTokensProvider: {
             documentSelector: [
               {
-                language: "backstage-entity",
+                language: 'backstage-entity',
               },
             ],
             full: true,
@@ -96,14 +93,14 @@ export class BackstageEntityLanguageService {
         this.connection.client.register(
           DidChangeConfigurationNotification.type,
           {
-            section: "backstage entity",
-          }
+            section: 'backstage entity',
+          },
         );
       }
       if (
         this.workspaceManager.clientCapabilities.workspace?.workspaceFolders
       ) {
-        this.connection.workspace.onDidChangeWorkspaceFolders((e) => {
+        this.connection.workspace.onDidChangeWorkspaceFolders(e => {
           this.workspaceManager.handleWorkspaceChanged(e);
         });
       }
@@ -114,17 +111,17 @@ export class BackstageEntityLanguageService {
   }
 
   private registerLifecycleEventHandlers() {
-    this.connection.onDidChangeConfiguration(async (params) => {
+    this.connection.onDidChangeConfiguration(async params => {
       try {
         // await this.workspaceManager.forEachContext((context) =>
         //   context.documentSettings.handleConfigurationChanged(params)
         // );
       } catch (error) {
-        this.handleError(error, "onDidChangeConfiguration");
+        this.handleError(error, 'onDidChangeConfiguration');
       }
     });
 
-    this.documents.onDidOpen(async (e) => {
+    this.documents.onDidOpen(async e => {
       try {
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
@@ -134,15 +131,15 @@ export class BackstageEntityLanguageService {
             this.validationManager,
             false,
             context,
-            this.connection
+            this.connection,
           );
         }
       } catch (error) {
-        this.handleError(error, "onDidOpen");
+        this.handleError(error, 'onDidOpen');
       }
     });
 
-    this.documents.onDidClose((e) => {
+    this.documents.onDidClose(e => {
       try {
         this.validationManager.handleDocumentClosed(e.document.uri);
         const context = this.workspaceManager.getContext(e.document.uri);
@@ -150,21 +147,21 @@ export class BackstageEntityLanguageService {
         //   context.documentSettings.handleDocumentClosed(e.document.uri);
         // }
       } catch (error) {
-        this.handleError(error, "onDidClose");
+        this.handleError(error, 'onDidClose');
       }
     });
 
-    this.connection.onDidChangeWatchedFiles((params) => {
+    this.connection.onDidChangeWatchedFiles(params => {
       try {
         // this.workspaceManager.forEachContext((context) =>
         //   context.handleWatchedDocumentChange(params)
         // );
       } catch (error) {
-        this.handleError(error, "onDidChangeWatchedFiles");
+        this.handleError(error, 'onDidChangeWatchedFiles');
       }
     });
 
-    this.documents.onDidSave(async (e) => {
+    this.documents.onDidSave(async e => {
       try {
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
@@ -174,121 +171,121 @@ export class BackstageEntityLanguageService {
             this.validationManager,
             false,
             context,
-            this.connection
+            this.connection,
           );
         }
       } catch (error) {
-        this.handleError(error, "onDidSave");
+        this.handleError(error, 'onDidSave');
       }
     });
 
-    this.connection.onDidChangeTextDocument((e) => {
+    this.connection.onDidChangeTextDocument(e => {
       try {
         this.validationManager.reconcileCacheItems(
           e.textDocument.uri,
-          e.contentChanges
+          e.contentChanges,
         );
       } catch (error) {
-        this.handleError(error, "onDidChangeTextDocument");
+        this.handleError(error, 'onDidChangeTextDocument');
       }
     });
 
-    this.documents.onDidChangeContent(async (e) => {
+    this.documents.onDidChangeContent(async e => {
       try {
         await doValidate(
           e.document,
           this.validationManager,
           true,
           this.workspaceManager.getContext(e.document.uri),
-          this.connection
+          this.connection,
         );
       } catch (error) {
-        this.handleError(error, "onDidChangeContent");
+        this.handleError(error, 'onDidChangeContent');
       }
     });
 
-    this.connection.languages.semanticTokens.on(async (params) => {
+    this.connection.languages.semanticTokens.on(async params => {
       try {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
           const context = this.workspaceManager.getContext(
-            params.textDocument.uri
+            params.textDocument.uri,
           );
           if (context) {
             // return await doSemanticTokens(document, await context.docsLibrary);
           }
         }
       } catch (error) {
-        this.handleError(error, "onSemanticTokens");
+        this.handleError(error, 'onSemanticTokens');
       }
       return {
         data: [],
       };
     });
 
-    this.connection.onHover(async (params) => {
+    this.connection.onHover(async params => {
       try {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
           const context = this.workspaceManager.getContext(
-            params.textDocument.uri
+            params.textDocument.uri,
           );
           if (context) {
             return await doHover(document, params.position);
           }
         }
       } catch (error) {
-        this.handleError(error, "onHover");
+        this.handleError(error, 'onHover');
       }
       return null;
     });
 
-    this.connection.onCompletion(async (params) => {
+    this.connection.onCompletion(async params => {
       try {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
           const context = this.workspaceManager.getContext(
-            params.textDocument.uri
+            params.textDocument.uri,
           );
           if (context) {
             return await doCompletion(document, params.position, context);
           }
         }
       } catch (error) {
-        this.handleError(error, "onCompletion");
+        this.handleError(error, 'onCompletion');
       }
       return null;
     });
 
-    this.connection.onCompletionResolve(async (completionItem) => {
+    this.connection.onCompletionResolve(async completionItem => {
       try {
         if (completionItem.data?.documentUri) {
           const context = this.workspaceManager.getContext(
-            completionItem.data?.documentUri
+            completionItem.data?.documentUri,
           );
           if (context) {
             return await doCompletionResolve(completionItem, context);
           }
         }
       } catch (error) {
-        this.handleError(error, "onCompletionResolve");
+        this.handleError(error, 'onCompletionResolve');
       }
       return completionItem;
     });
 
-    this.connection.onDefinition(async (params) => {
+    this.connection.onDefinition(async params => {
       try {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
           const context = this.workspaceManager.getContext(
-            params.textDocument.uri
+            params.textDocument.uri,
           );
           if (context) {
             return await getDefinition(document, params.position);
           }
         }
       } catch (error) {
-        this.handleError(error, "onDefinition");
+        this.handleError(error, 'onDefinition');
       }
       return null;
     });
@@ -297,9 +294,9 @@ export class BackstageEntityLanguageService {
   private handleError(error: unknown, contextName: string) {
     const leadMessage = `An error occurred in '${contextName}' handler: `;
     if (error instanceof Error) {
-      const stack = error.stack ? `\n${error.stack}` : "";
+      const stack = error.stack ? `\n${error.stack}` : '';
       this.connection.console.error(
-        `${leadMessage}[${error.name}] ${error.message}${stack}`
+        `${leadMessage}[${error.name}] ${error.message}${stack}`,
       );
     } else {
       this.connection.console.error(leadMessage + JSON.stringify(error));

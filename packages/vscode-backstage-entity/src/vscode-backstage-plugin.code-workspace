@@ -1,16 +1,16 @@
 {
   "folders": [
     {
-      "path": "../../.."
+      "path": "../../..",
     },
     {
-      "path": "../../backstage-entity-language-server"
+      "path": "../../backstage-entity-language-server",
     },
     {
-      "path": ".."
-    }
+      "path": "..",
+    },
   ],
   "settings": {
-    "typescript.tsdk": "vscode-backstage-plugin/node_modules/typescript/lib"
-  }
+    "typescript.tsdk": "vscode-backstage-plugin/node_modules/typescript/lib",
+  },
 }
